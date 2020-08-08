@@ -1,8 +1,8 @@
 ----------------------------------------------------------------
-Sun May 03 18:27:17 CEST 2020:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.11.1.2 - (1629631): instance a816c00e-0171-db5c-fed0-0000061051d0 
+Sat Aug 08 15:28:38 CEST 2020:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.11.1.2 - (1629631): instance a816c00e-0173-ce42-4bb2-0000060e1378 
 on database directory C:\Users\tlehe\Documents\Java\MenetrendTervezo\adatbazis with class loader sun.misc.Launcher$AppClassLoader@3d4eac69 
-Loaded from file:/C:/Users/tlehe/Documents/Java/MenetrendTervezo/dist/run550945963/lib/derby.jar
+Loaded from file:/C:/Users/tlehe/Documents/Java/MenetrendTervezo/dist/run626846688/lib/derby.jar
 java.vendor=Oracle Corporation
 java.runtime.version=1.8.0_162-b12
 user.dir=C:\Users\tlehe\Documents\Java\MenetrendTervezo

@@ -3,13 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package menetrendtervezo.entity;
+package menetrendtervezo.route;
+
+import java.sql.ResultSet;
+import menetrendtervezo.database.DataBase;
 
 /**
  *
  * @author tlehe
  */
 public class Stop {
+    private int id; 
     private String name;
     private int capacity;
 
@@ -28,4 +32,15 @@ public class Stop {
     public void setCapacity(int capacity) {
         this.capacity = capacity;
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public Stop(int id, String name, int capacity) {
+        this.id = id;
+        this.name = name;
+        this.capacity = capacity;
+    }
+    
 }

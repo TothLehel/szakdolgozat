@@ -24,9 +24,10 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.PostConstruct;
 import menetrendtervezo.entity.Driver;
 import menetrendtervezo.error.InputError;
-import menetrendtervezo.entity.Stop;
+import menetrendtervezo.route.Stop;
 import menetrendtervezo.entity.Vehicle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -45,14 +46,14 @@ public class DataBase {
     private Connection conn;
     private Statement createStatement;
     private DatabaseMetaData dbmd = null;
-    
+    private static DataBase single_instance = null;
     
     private final InputError INPUT_ERROR = new InputError();
-    private ArrayList<Stop> stops = new ArrayList<>();
+    
     private ArrayList<Driver> drivers = new ArrayList<>();
     private ArrayList<Vehicle> vehicles = new ArrayList<>();
    
-    public DataBase() {
+    private DataBase() {
         try {
             conn = DriverManager.getConnection(URL);
             if(conn != null){
@@ -64,8 +65,14 @@ public class DataBase {
         } catch (SQLException ex) {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
     }
+    public static DataBase getInstance(){
+        if(single_instance == null){
+            single_instance = new DataBase();
+        }
+        return single_instance;
+    }
+    
     private String[] readSQLFile(String src){
         File sqlFile = new File(src);
         Scanner scanner;
@@ -83,7 +90,6 @@ public class DataBase {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("a(z)"+src +" sql file nem található!");
         }
-        
         return sqlOrd;
     }
     private void createTables(String[] sqlOrders){
@@ -126,19 +132,20 @@ public class DataBase {
             rs.close();
             return 0;
         } catch (SQLException ex) {
-            System.out.println("hiba a(z) "+ tableName.toUpperCase()+ " table létrehozásakor");
+            System.out.println("hiba a(z) "+ tableName.toUpperCase()+ " table létrehozásakor: " + ex);
         }
         return -1;
     } 
     
     private int executeSQL(String src){
         String[] sqlOrders = readSQLFile(src);
-        for(int i = 0; i< sqlOrders.length-1; i++){
+        for(String sqlOrder : sqlOrders){
             try {
-                createStatement.execute(sqlOrders[i]);
+                createStatement.execute(sqlOrder);
+            
             } catch (SQLException ex) {
                 Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
-                System.out.println("A(z) " + i +". SQL parancs lefuttatása nem sikerült a(z) " + src +" fájlan!" );
+                System.out.println("A(z) " + sqlOrder +". SQL parancs lefuttatása nem sikerült a(z) " + src +" fájlban! ex: " + ex );
                 return -1;
             }
         }
@@ -293,91 +300,9 @@ public class DataBase {
                                 }
                             }
                         }
-                        //talán return
                     }
                 }
             }
-            
-            
-            
-            
-           /* while(cellIt.hasNext()){
-                cellIndex = cellIt.next().getColumnIndex();
-                Cell cell = row.getCell(cellIndex, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
-                evaluator.evaluateInCell(cell);
-                int id = 0;
-                if(cell != null){
-                    switch(cell.getColumnIndex()){
-                        case 0:
-                            if(cell.getCellType() == CellType.STRING){
-                                ps.setString(2, cell.getStringCellValue());
-                                System.out.println("firstname inserted");
-                            }
-                            break;
-                        case 1:
-                            if(cell.getCellType() == CellType.STRING){
-                                ps.setString(3, cell.getStringCellValue());
-                                System.out.println("lastname inserted");
-                            }
-                            break;
-                        case 2:
-                            if(cell.getCellType() == CellType.NUMERIC && !itemAlreadyExists((int)cell.getNumericCellValue(), "drivers")){
-                                ps.setInt(1, (int)cell.getNumericCellValue());
-                                id = (int)cell.getNumericCellValue();
-                                System.out.println("id isnerted " + id);
-                            }else{
-                                return;
-                            }
-                            
-                            break;
-                        default:
-                            Row firstRow = row.getSheet().getRow(0);
-                            Cell dateCell = firstRow.getCell(cell.getRowIndex()+1);
-                            evaluator.evaluateInCell(dateCell);
-                            if(!itemAlreadyExists(id, dateCell.getDateCellValue(), "dates")){
-                                dateStatement.setInt(1, id);
-                                java.sql.Date sqlDate = new java.sql.Date(dateCell.getDateCellValue().getTime());
-                                Calendar c = Calendar.getInstance();
-                                c.setTime(sqlDate);
-                                dateStatement.setDate(2, sqlDate);
-                                if(cell.getCellType() == CellType.NUMERIC){
-                                    
-                                    //java.sql.Timestamp sqlStart = new java.sql.Timestamp(cell.getDateCellValue().getTime());
-                                    //java.sql.Timestamp sqlEnd= new java.sql.Timestamp(cell.getRow().getCell(cell.getColumnIndex() + 1).getDateCellValue().getTime());
-                                    
-                                    Calendar start = Calendar.getInstance();
-                                    Calendar end = Calendar.getInstance();
-                                    start.setTime(cell.getDateCellValue());
-                                    System.out.println(cell.getAddress());
-                                    end.setTime(cell.getRow().getCell(cell.getColumnIndex() + 1).getDateCellValue());
-                                    
-                                    c.add(Calendar.HOUR_OF_DAY, start.get(Calendar.HOUR_OF_DAY));
-                                    java.sql.Timestamp sqlStart = new java.sql.Timestamp(c.getTimeInMillis()); 
-                                    int dif = start.compareTo(end);
-                                    
-                                    if(end.before(start)){
-                                        dif = -dif;
-                                    }
-                                    c.add(Calendar.MILLISECOND, dif);
-                                    java.sql.Timestamp sqlEnd = new java.sql.Timestamp(c.getTimeInMillis());
-                                    java.sql.Time sqlDifference = new java.sql.Time(dif);
-                                    dateStatement.setTimestamp(3, sqlStart);
-                                    dateStatement.setTimestamp(4, sqlEnd);
-                                    dateStatement.setTime(5, sqlDifference);
-                                    dateStatement.execute();
-                                }else if(cell.getCellType() == CellType.STRING){
-                                    dateStatement.setNull(3, Types.TIMESTAMP);
-                                    dateStatement.setNull(4, Types.TIMESTAMP);
-                                    dateStatement.setNull(5, Types.TIME);
-                                    dateStatement.execute();
-                                }
-                            }
-                            break;
-                    }
-                    
-                }
-            }*/
-            
         ps.close();
         dateStatement.close();
         }catch(SQLException ex){
@@ -469,47 +394,26 @@ public class DataBase {
         return true;
     }
    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    public void createDrvier(Cell cell, Cell day, CellValue value){
-        Driver driver;
-        if(drivers.size() == cell.getRowIndex()-2){
-            driver = new Driver();
-            drivers.add(driver);
-        }else{
-            driver = drivers.get(cell.getRowIndex() - 2);
+
+    public ResultSet listTableResultSet(String tableName){
+        try {
+            ResultSet rs = createStatement.executeQuery("SELECT * FROM " + tableName);
+            System.out.println("SELECT * FROM " + tableName);
+            
+            return rs;
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
-        switch(cell.getColumnIndex()){
-            case 0:
-                driver.setName(cell.getStringCellValue());
-                break;
-            case 1:
-                driver.setId((int)cell.getNumericCellValue());
-                break;
-            default:
-                driver.addWorkDay(cell, day, value);
-                break;
-        }
-        
-        
+        return null;
     }
+    
+    
     
    
     public void listDrivers(){
         try {
             ResultSet rs = createStatement.executeQuery("SELECT * FROM drivers");
-            ResultSet dateSet;
-            
             ArrayList idList;
             idList = new ArrayList();
             while(rs.next()){
@@ -553,32 +457,7 @@ public class DataBase {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    public void DeleteAll(){
-        DeleteDrivers();
-        DeleteStops();
-        DeleteVehicles();
-    }
-    public void DeleteStops(){
-        stops.clear();
-    }
-    public void DeleteVehicles(){
-        vehicles.clear();
-    }
-    public void DeleteDrivers(){
-        drivers.clear();
-    }
+   
     
-    /*public void DriverTableToDatabase(){
-        //excel ellenőrzés és beolvasása
-    }
-    public void VehicleTableToDatabase(){
-        //excel ell és beolvasása
-    }
-    public void StopTableToDatabase(){
-        //excel ell és beolvasása
-    }
-    public void TimeTableToDatabase(){
-        //excel ell és beolvasása
-    }*/
 }
 

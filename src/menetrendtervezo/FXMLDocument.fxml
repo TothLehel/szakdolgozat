@@ -1,28 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<TabPane fx:controller="menetrendtervezo.FXMLDocumentController" prefHeight="600.0" prefWidth="800.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<TabPane maxHeight="600.0" maxWidth="1000.0" minHeight="600.0" minWidth="1000.0" prefHeight="600.0" prefWidth="1000.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="menetrendtervezo.FXMLDocumentController">
   <tabs>
     <Tab id="adatbevitelTab" fx:id="adatbevitelTab" text="Adatbevitel">
          <content>
-            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="393.0" prefWidth="800.0">
                <children>
-                  <TextField id="driverTableDirectory" fx:id="driverTableDirectory" layoutX="36.0" layoutY="81.0" prefHeight="26.0" prefWidth="307.0" />
-                  <Button id="driverTableBrowseButton" fx:id="driverTableBrowseButton" onAction="#Browse" layoutX="344.0" layoutY="81.0" mnemonicParsing="false" text="Tallózás" />
+                  <TextField id="driverTableDirectory" fx:id="driverTableDirectory" layoutX="36.0" layoutY="81.0" prefHeight="25.0" prefWidth="450.0" />
+                  <Button id="driverTableBrowseButton" fx:id="driverTableBrowseButton" layoutX="486.0" layoutY="81.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
                   <Label layoutX="35.0" layoutY="53.0" text="Sofőröket tartalmazó tábla helye:" />
-                  <Button id="OkImportButton" fx:id="OkImportButton" layoutX="36.0" layoutY="259.0" mnemonicParsing="false" text="OK" onAction="#ImportTables"  />
-                  <TextField id="stopTableDirectory" fx:id="stopTableDirectory" layoutX="36.0" layoutY="148.0" prefHeight="26.0" prefWidth="308.0" />
-                  <Button id="stopTableBrowseButton" fx:id="stopTableBrowseButton" layoutX="344.0" layoutY="148.0" mnemonicParsing="false" text="Tallózás" onAction="#Browse"/>
+                  <Button id="OkImportButton" fx:id="OkImportButton" layoutX="36.0" layoutY="259.0" mnemonicParsing="false" onAction="#ImportTables" text="OK" />
+                  <TextField id="vehicleTableDirectory" fx:id="vehicleTableDirectory" layoutX="36.0" layoutY="219.0" prefHeight="25.0" prefWidth="450.0" />
+                  <TextField id="stopTableDirectory" fx:id="stopTableDirectory" layoutX="36.0" layoutY="148.0" prefHeight="25.0" prefWidth="450.0" />
+                  <Button id="stopTableBrowseButton" fx:id="stopTableBrowseButton" layoutX="486.0" layoutY="148.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
                   <Label layoutX="35.0" layoutY="121.0" text="Megállókat tartalmazó tábla helye:" />
-                  <TextField id="vehicleTableDirectory" fx:id="vehicleTableDirectory" layoutX="36.0" layoutY="219.0" prefHeight="26.0" prefWidth="307.0"  />
-                  <Button id="vehicleTableBrowseButton" fx:id="vehicleTableBrowseButton" layoutX="344.0" layoutY="219.0" mnemonicParsing="false" text="Tallózás" onAction="#Browse" />
+                  <Button id="vehicleTableBrowseButton" fx:id="vehicleTableBrowseButton" layoutX="486.0" layoutY="219.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
                   <Label layoutX="35.0" layoutY="189.0" text="Járműveket tartalmazó tábla helye:" />
                   <Label layoutX="35.0" layoutY="20.0" text="Új menetrend létrehozása">
                      <font>
@@ -34,16 +41,94 @@
                         <Font size="18.0" />
                      </font>
                   </Label>
-                  <TextField id="timetableTableDirectory" fx:id="timetableTableDirectory" layoutX="35.0" layoutY="357.0" prefHeight="26.0" prefWidth="309.0" />
-                  <Button id="timetableBrowseButton" fx:id="timetableBrowseButton" layoutX="344.0" layoutY="357.0" mnemonicParsing="false" text="Tallózás" onAction="#Browse" />
+                  <TextField id="timetableTableDirectory" fx:id="timetableTableDirectory" layoutX="35.0" layoutY="357.0" prefHeight="25.0" prefWidth="450.0" />
+                  <Button id="timetableBrowseButton" fx:id="timetableBrowseButton" layoutX="486.0" layoutY="357.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
+                  <ImageView fitHeight="428.0" fitWidth="398.0" layoutX="581.0" layoutY="85.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@FXML/route_artwork.jpg" />
+                     </image>
+                  </ImageView>
+                  <AnchorPane prefHeight="200.0" prefWidth="200.0" />
                </children>
             </AnchorPane>
          </content>
     </Tab>
     <Tab id="menetrendTervezeseTab" fx:id="menetrendTervezeseTab" text="Menetrend tervezése">
-      <content>
-        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
-      </content>
+         <content>
+            <AnchorPane prefHeight="436.0" prefWidth="656.0">
+               <children>
+                  <AnchorPane id="dialogePane" fx:id="dialogePane" disable="true" prefHeight="521.6" prefWidth="844.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <children>
+                        <Button id="closeDialogeButton" fx:id="closeDialogeButton" contentDisplay="RIGHT" layoutX="975.0" layoutY="2.0" mnemonicParsing="false" onAction="#exitDialogeWindow" prefHeight="26.0" prefWidth="22.0" text="x" textAlignment="CENTER" textOverrun="CLIP" />
+                        <TableView id="stopList" fx:id="stopList" layoutX="14.0" layoutY="60.0" prefHeight="447.0" prefWidth="160.0" />
+                        <TableView id="selectedStopList" fx:id="selectedStopList" layoutX="227.0" layoutY="60.0" prefHeight="447.0" prefWidth="160.0" />
+                        <Button id="selectStop" fx:id="selectStop" layoutX="182.0" layoutY="222.0" mnemonicParsing="false" onAction="#selectStop" text="&gt;" />
+                        <Button id="deSelectStop" fx:id="deSelectStop" layoutX="182.0" layoutY="272.0" mnemonicParsing="false" onAction="#removeStop" text="&lt;" />
+                        <Label layoutX="14.0" layoutY="15.0" prefHeight="40.0" prefWidth="180.0" text="Megállók az adatbázisból" />
+                        <Label layoutX="211.0" layoutY="14.0" prefHeight="38.0" prefWidth="222.0" text="Kiválasztott megállók sorrendben" />
+                        <Button id="addRoadButton" fx:id="addRoadButton" layoutX="822.0" layoutY="87.0" mnemonicParsing="false" prefHeight="43.0" prefWidth="94.0" text="hozzáad" />
+                        <TextField id="distanceTextField" fx:id="distanceTextField" layoutX="477.0" layoutY="104.0" prefHeight="26.0" prefWidth="35.0" />
+                        <Label layoutX="410.0" layoutY="109.0" text="Távolság" />
+                        <Label layoutX="531.0" layoutY="109.0" text="KM" />
+                        <Label layoutX="594.0" layoutY="109.0" text="Út típusa" />
+                        <MenuButton id="roadTypeSelector" fx:id="roadTypeSelector" disable="true" layoutX="630.0" layoutY="105.0" mnemonicParsing="false" text="Típus" visible="false">
+                          <items>
+                            <MenuItem id="city" fx:id="city" mnemonicParsing="false" text="Városi út" />
+                              <MenuItem id="residental" fx:id="residental" mnemonicParsing="false" text="Lakott területen belüli út" />
+                              <MenuItem id="nonResidental" fx:id="nonResidental" mnemonicParsing="false" text="Lakott területen kívüli út" />
+                              <MenuItem id="highway" fx:id="highway" mnemonicParsing="false" text="Országút" />
+                              <MenuItem id="speedway" fx:id="speedway" mnemonicParsing="false" text="Autópálya" />
+                          </items>
+                        </MenuButton>
+                        <Label id="selectedStartLabel" fx:id="selectedStartLabel" layoutX="476.0" layoutY="79.0" text="Selected start" />
+                        <Label id="selectedStopLabel" fx:id="selectedStopLabel" layoutX="646.0" layoutY="79.0" text="Selected stop" />
+                        <Label layoutX="418.0" layoutY="78.0" text="Innen" />
+                        <Label layoutX="592.0" layoutY="79.0" text="ide" />
+                        <TableView layoutX="404.0" layoutY="148.0" prefHeight="271.0" prefWidth="576.0" />
+                        <Button id="finishAddingRoutesButton" fx:id="finishAddingRoutesButton" layoutX="876.0" layoutY="441.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="98.0" text="Kész" />
+                        <Button id="deleteRoadButton" fx:id="deleteRoadButton" layoutX="419.0" layoutY="428.0" mnemonicParsing="false" prefHeight="22.0" prefWidth="78.0" text="Törlés" />
+                        <Button id="editRoadButton" fx:id="editRoadButton" layoutX="420.0" layoutY="474.0" mnemonicParsing="false" text="Változtatás" />
+                        <Button id="moveRoadUp" fx:id="moveRoadUp" layoutX="564.0" layoutY="428.0" mnemonicParsing="false" text="Feljebb" />
+                        <Button id="moveRoadDown" fx:id="moveRoadDown" layoutX="564.0" layoutY="474.0" mnemonicParsing="false" text="Lejjebb" />
+                        <TextField id="routeNameTextField" fx:id="routeName" layoutX="673.0" layoutY="22.0" text="Útvonal név" />
+                        <Label layoutX="564.0" layoutY="24.0" text="Útvonal neve:" />
+                        <ChoiceBox id="roadChoiceBox" fx:id="roadChoiceBox" layoutX="659.0" layoutY="104.0" prefHeight="26.0" prefWidth="66.0" />
+                     </children>
+                  </AnchorPane>
+                  <SplitPane id="splitPane" fx:id="splitPane" dividerPositions="0.5" prefHeight="485.6" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <items>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="423.0">
+                           <children>
+                              <Label layoutX="158.0" layoutY="30.0" text="Útvonalak kezelése">
+                                 <font>
+                                    <Font size="19.0" />
+                                 </font>
+                              </Label>
+                              <Button layoutX="58.0" layoutY="79.0" mnemonicParsing="false" onAction="#addNewRoute" prefHeight="35.0" prefWidth="160.0" text="Új útvonal megadása" />
+                              <Button layoutX="261.0" layoutY="79.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="201.0" text="Útvonal megváltoztatása" />
+                              <Button layoutX="282.0" layoutY="138.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="160.0" text="Útvonal törlése" />
+                              <Label layoutX="14.0" layoutY="173.0" text="Eddigi útvonalak" />
+                              <TableView fx:id="routeTable" layoutX="14.0" layoutY="202.0" prefHeight="352.0" prefWidth="467.0">
+                                 <placeholder>
+                                    <Label text="az adatbázisban nem található útvonal" />
+                                 </placeholder>
+                              </TableView>
+                           </children>
+                        </AnchorPane>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="563.0" prefWidth="455.0">
+                           <children>
+                              <Label layoutX="14.0" layoutY="37.0" text="Menetrend létrehozása">
+                                 <font>
+                                    <Font size="19.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                        </AnchorPane>
+                     </items>
+                  </SplitPane>
+               </children>
+            </AnchorPane>
+         </content>
     </Tab>
     <Tab id="SzimulacioTab" fx:id="SzimulacioTab" text="Szimuláció">
       <content>

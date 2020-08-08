@@ -28,3 +28,5 @@ GO
 ALTER TABLE [route_destinations] ADD FOREIGN KEY ([stop_distance_id]) REFERENCES [stop_distances] ([id])
 GO
 
+ALTER TABLE [stop_distances] ADD FOREIGN KEY ([roadId]) REFERENCES [road_types] ([roadId])
+

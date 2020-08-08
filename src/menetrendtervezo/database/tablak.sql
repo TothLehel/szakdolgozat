@@ -16,8 +16,8 @@ CREATE TABLE [vehicle_type_limits] (
   [type] varchar(2) PRIMARY KEY,
   [speedway_speed_limit] int,
   [highway_speed_limit] int,
-  [city_speed_limit] int,
-  [residental_area_limit] int
+  [non_residental_area_limit] int,
+  [residental_speed_limit] int
 )
 GO
 
@@ -61,7 +61,7 @@ CREATE TABLE [stop_distances] (
   [start_stop_id] int,
   [end_stop_id] int,
   [distance] int,
-  [road_type] varchar(255),
+  [roadId] varchar(30),
   [traffic_id] int
 )
 GO
@@ -82,3 +82,8 @@ CREATE TABLE [route_destinations] (
   PRIMARY KEY ([route_id], [number])
 )
 GO
+
+CREATE TABLE [road_types] (
+  [roadId] varchar (30) PRIMARY KEY,
+  [road_type] varchar (30)
+)

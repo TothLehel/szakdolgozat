@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import menetrendtervezo.datacontroller.DataController;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.CellValue;
@@ -29,9 +30,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  *
  * @author tlehe
  */
-public class FileManager {
+public class FileManager extends DataController{
     private static final FileChooser FILE_CHOOSER = new FileChooser();
-    private static final DataBase DB = new DataBase();
+    private static final DataController DC = new DataController();
     private static final InputError INPUT_ERROR = new InputError();
 
     public void setTitle(String title) {
@@ -107,7 +108,7 @@ public class FileManager {
                 Row row = rowIt.next();
                 if(row.getRowNum() >= 2 ){
                     //System.out.println(row.getRowNum());
-                    DB.createDriver(row);
+                    DC.createDriver(row);
                 }
                 /*Iterator<Cell> cellIt = row.iterator();
                 
@@ -126,12 +127,12 @@ public class FileManager {
                     }
                 }*/
             }
-            DB.listDrivers();
-            DB.deleteSQLTable("dates");
-            DB.deleteSQLTable("drivers");
+            
+            DC.deleteSQLTable("dates");
+            DC.deleteSQLTable("drivers");
         }else{
             INPUT_ERROR.driverTableFormatError();
-            DB.DeleteAll();
+            
         }
         //DB.listDrivers();
     }
@@ -146,13 +147,13 @@ public class FileManager {
             while(rowIt.hasNext()){
                 Row row = rowIt.next();
                 if(row.getRowNum() > 1 ){
-                    DB.createVehicle(row);
+                    DC.createVehicle(row);
                 }
             }
-            DB.listVehicles();
+            
         }else{
             INPUT_ERROR.vehicleTableFormatError();
-            DB.DeleteAll();
+            
         }
     }
     private static void iterateStopWorkbook(XSSFWorkbook workbook){
@@ -165,13 +166,13 @@ public class FileManager {
             while(rowIt.hasNext()){
                 Row row = rowIt.next();
                 if(row.getRowNum() != 0){
-                    DB.createStop(row);
+                    DC.createStop(row);
                 }
             }
-            DB.listStops();
+            
         }else{
             INPUT_ERROR.stopTableFormatError();
-            DB.DeleteAll();
+            
         }
         
     }
@@ -235,11 +236,6 @@ public class FileManager {
             }
         }
         return false;
-    }
-    private static void switchDriverTable(Cell cell, Cell day, CellValue value){
-        if(cell != null && cell.getRowIndex() >= 2){
-            DB.createDrvier(cell, day, value);
-        }
     }
     
 }

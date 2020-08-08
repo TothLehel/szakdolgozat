@@ -7,14 +7,40 @@ package menetrendtervezo;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import javafx.beans.property.ObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
+import javax.annotation.PostConstruct;
+import javax.rmi.CORBA.Util;
+import menetrendtervezo.datacontroller.DataController;
 import menetrendtervezo.file.FileManager;
 import menetrendtervezo.error.InputError;
+import menetrendtervezo.route.RoadType;
+import menetrendtervezo.route.Stop;
 
 /**
  *
@@ -24,6 +50,7 @@ public class FXMLDocumentController implements Initializable {
     final FileManager FILE_MANAGER = new FileManager();
     File driverTable, stopTable, vehicleTable, timetableTable;
     final InputError INPUT_ERROR = new InputError();
+    final DataController DATA_CONTROLLER = new DataController();
            
     @FXML
     TextField driverTableDirectory, stopTableDirectory, 
@@ -33,9 +60,31 @@ public class FXMLDocumentController implements Initializable {
     Button driverTableBrowseButton, vehicleTableBrowseButton, 
             stopTableBrowseButton, timetableBrowseButton;
     
+    @FXML 
+    Pane dialogePane;
+    
+    @FXML
+    SplitPane splitPane;
+    
+    @FXML
+    Button closeDialogeButton;
+    
+    @FXML 
+    TableView stopList, selectedStopList;
+    
+    @FXML
+    Label selectedStartLabel, selectedStopLabel;
+    
+    @FXML
+    TextField distanceTextField;
+    
+    @FXML
+    ChoiceBox roadChoiceBox;
+    
+    public TableView startingStopList;
+    
     @FXML
     private void Browse(ActionEvent event) {
-        
        Button btn = (Button)event.getSource();
         if(btn.getId().equals(driverTableBrowseButton.getId())){
             FILE_MANAGER.setTitle("Sofőröket tartalmazó tábla kiválasztása");
@@ -109,10 +158,101 @@ public class FXMLDocumentController implements Initializable {
             INPUT_ERROR.vehicleTableDontExists();
         }*/
         
-    }
+    } 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
-    }    
+        TableColumn stopName = new TableColumn("megálló neve");
+        stopName.setMinWidth(160);
+        stopName.setCellValueFactory(new PropertyValueFactory<Stop,String>("name"));
+        stopName.setSortable(false);
+        selectedStopList.getColumns().add(stopName);
+        selectedStopList.setOnMouseClicked(new EventHandler<MouseEvent>(){
+            @Override
+            public void handle(MouseEvent event) {
+                
+                Stop clickedStop = (Stop)selectedStopList.getSelectionModel().getSelectedItem();
+                if( clickedStop != null){
+                    selectedStartLabel.setText(clickedStop.getName());
+                    int nextStopIndex = selectedStopList.getSelectionModel().getSelectedIndex()+1;
+                    if(nextStopIndex < selectedStopList.getItems().size()){
+                        Stop nextStop = (Stop) selectedStopList.getItems().get(nextStopIndex);
+                        selectedStopLabel.setText(nextStop.getName());
+                    }else{
+                        selectedStopLabel.setText("Útvonal vége");
+                    }
+                }
+            }
+        
+        });
+        ArrayList<RoadType> roadTypes = DATA_CONTROLLER.readRoadTypes();
+        Map<String,String> roadTypeMap = new HashMap<>();
+        for (RoadType rd : roadTypes) {
+            roadTypeMap.put(rd.getRoadId(), rd.getRoadType());
+        }
+        roadChoiceBox.setItems(FXCollections.observableArrayList(roadTypeMap.values()));
+    }
     
+    @FXML
+    public void addNewRoute(ActionEvent event){
+        splitPane.setVisible(false);
+        splitPane.setDisable(true);
+        dialogePane.setVisible(true);
+        dialogePane.setDisable(false);
+        
+        TableColumn stopName = new TableColumn("megálló neve");
+        stopName.setMinWidth(160);
+        stopName.setCellValueFactory(new PropertyValueFactory<Stop,String>("name"));
+        stopName.setSortType(TableColumn.SortType.ASCENDING);
+        stopList.getColumns().add(stopName);
+        List<Stop> stopArrayList = DATA_CONTROLLER.readStops();
+        if(stopArrayList.size() > 0){
+            stopList.setItems(FXCollections.observableArrayList(stopArrayList));
+        }
+        startingStopList = stopList;
+        //selectedStopList.getColumns().add(stopName);     
+    }
+    
+    @FXML
+    public void exitDialogeWindow(ActionEvent event){
+        dialogePane.setVisible(false);
+        dialogePane.setDisable(true);
+        splitPane.setVisible(true);
+        splitPane.setDisable(false);
+        stopList = startingStopList;
+        selectedStopList.getItems().clear();
+        System.out.println("exiting..");
+    }
+    
+    @FXML
+    public void finishAddingRoutes(ActionEvent event){
+        //megjeleníteni a létrehozott adatokat
+        splitPane.setVisible(true);
+        splitPane.setDisable(false);
+        dialogePane.setVisible(false);
+        dialogePane.setDisable(true);
+    }
+    
+    @FXML
+    public void selectStop(ActionEvent event){
+        Stop stop = (Stop) stopList.getSelectionModel().selectedItemProperty().get();
+        selectedStopList.getItems().add(stop);
+        stopList.getItems().remove(stop);
+    }
+    
+    @FXML
+    public void removeStop(ActionEvent event){
+        Stop stop = (Stop) selectedStopList.getSelectionModel().selectedItemProperty().get();
+        stopList.getItems().add(stop);
+        stopList.sort();
+        selectedStopList.getItems().remove(stop);
+    
+    }
+    @FXML
+    public void addNewRoad(ActionEvent event){
+        if(null != distanceTextField && Double.parseDouble(distanceTextField.getText()) > 0){
+            
+        }else{
+            //ERROR 
+        }
+    }
 }
