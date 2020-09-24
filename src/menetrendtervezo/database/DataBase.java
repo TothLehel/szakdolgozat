@@ -7,6 +7,7 @@ package menetrendtervezo.database;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -20,15 +21,22 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javax.annotation.PostConstruct;
 import menetrendtervezo.entity.Driver;
 import menetrendtervezo.error.InputError;
-import menetrendtervezo.route.Stop;
+import menetrendtervezo.route.RouteDestinations;
 import menetrendtervezo.entity.Vehicle;
+import menetrendtervezo.route.Route;
+import menetrendtervezo.route.RouteTableView;
+import menetrendtervezo.route.Stop;
+import menetrendtervezo.route.StopDistance;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.CellValue;
@@ -408,9 +416,6 @@ public class DataBase {
         return null;
     }
     
-    
-    
-   
     public void listDrivers(){
         try {
             ResultSet rs = createStatement.executeQuery("SELECT * FROM drivers");
@@ -457,7 +462,199 @@ public class DataBase {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-   
+    public void addRoute(Route route){
+        try {
+            PreparedStatement ps;
+            ps = conn.prepareStatement("INSERT INTO routes (route_name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, route.getRouteName());
+            ps.executeUpdate();
+            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    route.setId(generatedKeys.getInt(1));
+                }
+                else {
+                    throw new SQLException("Creating ROUTES failed, no ID obtained.");
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    public void changeRoute(Route route){
+        try {
+            PreparedStatement ps;
+            ps = conn.prepareStatement("UPDATE routes SET route_name = ? WHERE route_id = ? ", Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, route.getRouteName());
+            ps.setInt(2, route.getId());
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            
+    }
+    public void addStopDistance(StopDistance sd){
+        try {
+            PreparedStatement ps = conn.prepareStatement("INSERT INTO stop_distances (start_stop_id, end_stop_id, distance, roadId) VALUES (?,?,?,?) ", Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, sd.getStartId());
+            ps.setInt(2, sd.getEndId());
+            ps.setDouble(3, sd.getDistance());
+            ps.setString(4, sd.getRoadId());
+            ps.executeUpdate();
+            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    sd.setId(generatedKeys.getInt(1));
+                }
+                else {
+                    throw new SQLException("Creating Stop_distance failed, no ID obtained.");
+                }
+            }
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
+    public void addRouteDestination(RouteDestinations routeDestination){
+        
+        try {
+            PreparedStatement ps = conn.prepareStatement("INSERT INTO route_destinations VALUES (?,?,?) "); //Id miatt átírni az adatbázist
+            ps.setInt(1, routeDestination.getId());
+            ps.setInt(2, routeDestination.getNumber());
+            ps.setInt(3, routeDestination.getStopDistanceId());
+            ps.executeUpdate();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
+    public void addRouteTableView(RouteTableView rtv){
+        try {
+            PreparedStatement ps = conn.prepareStatement("INSERT INTO route_table_view VALUES (?,?,?,?,?,?) ", Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, rtv.getRouteId());
+            ps.setString(2, rtv.getRouteName());
+            ps.setString(3, rtv.getStartName());
+            ps.setString(4, rtv.getEndName());
+            ps.setDouble(5, rtv.getDistanceSum());
+            ps.setInt(6, rtv.getNumberCount());
+            ps.executeUpdate();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    } 
+
+    public void removeRouteById(int routeId) {
+        try {
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM routes WHERE route_id = (?) ");
+            ps.setInt(1, routeId);
+            ps.executeUpdate();
+            System.out.println("ROUTE DELETED");
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    public void removeRouteDestinationsByRouteId(int routeId) {
+        deleteRouteDestinationById(routeId);
+        deleteStopDistancesByRouteId(routeId);
+    }
+
+    public void deleteRouteTableViewByRouteId(int routeId) {
+        try {
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM route_table_view WHERE route_id = (?) ");
+            ps.setInt(1, routeId);
+            ps.executeUpdate();
+            System.out.println("ROUTE TABLE VIEW DELETED");
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public ObservableList getStopDistancesByRouteId(int routeId) {
+        
+        try {
+            PreparedStatement statement = conn.prepareStatement("SELECT * FROM route_destinations WHERE route_id = (?) ");
+            statement.setInt(1, routeId);
+            ResultSet rs = statement.executeQuery();
+            ArrayList<Integer> stopDistanceIds;
+            stopDistanceIds = new ArrayList<>();
+            StringBuilder sql = new StringBuilder();
+            while(rs.next()){
+                stopDistanceIds.add(rs.getInt(2)-1, rs.getInt(3));
+                sql.append(" ?,");
+            }
+            String stg = "SELECT * FROM stop_distances WHERE id in (" + sql.deleteCharAt(sql.length()-1).toString() + ")";
+            PreparedStatement ps = conn.prepareStatement(stg);
+            for(int i = 0; i < stopDistanceIds.size(); i++){
+                System.out.println(stopDistanceIds.get(i));
+                ps.setInt(i+1, stopDistanceIds.get(i)); //nullpointer itt 
+            }
+            ResultSet stopDistances = ps.executeQuery();
+            ArrayList<StopDistance> stopDistanceList = new ArrayList<>();
+            ResultSet stopSet = listTableResultSet("stops");
+            ArrayList<Stop> stopList = new ArrayList<>();
+            while(stopSet.next()){
+                stopList.add(new Stop(stopSet.getInt(1), stopSet.getString(2), stopSet.getInt(3)));
+            }
+            ResultSet roadSet = listTableResultSet("road_types");
+            HashMap<String,String> roadNames= new HashMap<>();
+            while(roadSet.next()){
+                roadNames.put(roadSet.getString(1), roadSet.getString(2));
+            }
+            while(stopDistances.next()){
+                StopDistance std = new StopDistance();
+                std.setId(stopDistances.getInt(1));
+                std.setStartId(stopDistances.getInt(2));
+                std.setEndId(stopDistances.getInt(3));
+                std.setDistance(stopDistances.getDouble(4));
+                std.setRoadId(stopDistances.getString(5));
+                std.setRoadName(roadNames.get(std.getRoadId()));
+                for(Stop stop : stopList){
+                    if(stop.getId() == std.getStartId()){
+                        std.setSelectedStartName(stop.getName());
+                    }
+                    else if(stop.getId() == std.getEndId()){
+                        std.setSelectedStopName(stop.getName());
+                    }
+                }
+                
+                for(int i = 0; i < stopDistanceIds.size(); i++){
+                    int stopDist = stopDistanceIds.get(i);
+                    if(stopDist == std.getId() ){
+                        std.setNumber(i+1);
+                        stopDistanceList.add(i, std); 
+                
+                    }
+                }
+            }
+            return FXCollections.observableList(stopDistanceList);
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public void deleteRouteDestinationById(int id) {
+        try {
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM route_destinations WHERE route_id = (?) ");
+            ps.setInt(1, id);
+            ps.executeUpdate();
+            System.out.println("ROUTE DESTINATIONS DELETED");
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
+    public void deleteStopDistancesByRouteId(int routeId) {
+        try {
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM stop_distances WHERE id = (SELECT stop_distance_id FROM route_destinations WHERE route_id = (?))");
+            ps.setInt(1, routeId);
+            ps.executeUpdate();
+            System.out.println("STOP DISTANCES DELETED");
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            
+    }
+
 }
 

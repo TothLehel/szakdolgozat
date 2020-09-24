@@ -41,7 +41,7 @@ CREATE TABLE [schedule] (
 GO
 
 CREATE TABLE [routes] (
-  [route_id] int PRIMARY KEY,
+  [route_id] int PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
   [route_name] varchar(255)
 )
 GO
@@ -60,7 +60,7 @@ CREATE TABLE [stop_distances] (
   [id] int PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
   [start_stop_id] int,
   [end_stop_id] int,
-  [distance] int,
+  [distance] double,
   [roadId] varchar(30),
   [traffic_id] int
 )
@@ -86,4 +86,14 @@ GO
 CREATE TABLE [road_types] (
   [roadId] varchar (30) PRIMARY KEY,
   [road_type] varchar (30)
+)
+GO
+
+CREATE TABLE [route_table_view] (
+  [route_id] int PRIMARY KEY,
+  [route_name] varchar(255),
+  [start_name] varchar(255),
+  [end_name] varchar(255),
+  [distance] double,
+  [num_of_stops] int
 )
