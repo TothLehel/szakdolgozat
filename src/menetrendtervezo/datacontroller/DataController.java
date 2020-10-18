@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import menetrendtervezo.database.DataBase;
+import menetrendtervezo.entity.Schedule;
 import menetrendtervezo.route.RoadType;
 import menetrendtervezo.route.Route;
 import menetrendtervezo.route.RouteDestinations;
@@ -85,7 +86,7 @@ public class DataController {
         ArrayList<RouteTableView> rtv = new ArrayList<>();
         try {
             while(rs.next()){ 
-                rtv.add(new RouteTableView(rs.getInt("route_id"), rs.getString("route_name"), rs.getDouble("distance"), rs.getInt("num_of_stops"), rs.getString("start_name"),rs.getString("end_name")));
+                rtv.add(new RouteTableView(rs.getInt("route_id"), rs.getString("route_name"), rs.getDouble("distance"), rs.getInt("num_of_stops"), rs.getString("start_name"),rs.getString("end_name")));   
             }
         } catch (SQLException ex) {
             Logger.getLogger(DataController.class.getName()).log(Level.SEVERE, null, ex);
@@ -116,6 +117,14 @@ public class DataController {
 
     public void deleteRouteTableViewByRouteId(int routeId) {
         db.deleteRouteTableViewByRouteId(routeId);
+    }
+
+    public Schedule getScheduleByName(String text) {
+        return db.getScheduleByName(text);
+    }
+
+    public void addScheduleAsList(ArrayList<Schedule> scheduleList) {
+        db.addScheduleAsList(scheduleList);
     }
 
 

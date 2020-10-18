@@ -1,62 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
+<?import jfxtras.scene.control.agenda.Agenda?>
 
-<TabPane maxHeight="600.0" maxWidth="1000.0" minHeight="700.0" minWidth="1250.0" prefHeight="600.0" prefWidth="1000.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="menetrendtervezo.FXMLDocumentController">
+<TabPane maxHeight="600.0" maxWidth="1000.0" minHeight="700.0" minWidth="1250.0" prefHeight="600.0" prefWidth="1000.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="menetrendtervezo.controller.FXMLDocumentController">
   <tabs>
     <Tab id="adatbevitelTab" fx:id="adatbevitelTab" text="Adatbevitel">
          <content>
-            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="393.0" prefWidth="800.0">
-               <children>
-                  <TextField id="driverTableDirectory" fx:id="driverTableDirectory" layoutX="36.0" layoutY="81.0" prefHeight="25.0" prefWidth="450.0" />
-                  <Button id="driverTableBrowseButton" fx:id="driverTableBrowseButton" layoutX="486.0" layoutY="81.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
-                  <Label layoutX="35.0" layoutY="53.0" text="Sofőröket tartalmazó tábla helye:" />
-                  <Button id="OkImportButton" fx:id="OkImportButton" layoutX="36.0" layoutY="259.0" mnemonicParsing="false" onAction="#ImportTables" text="OK" />
-                  <TextField id="vehicleTableDirectory" fx:id="vehicleTableDirectory" layoutX="36.0" layoutY="219.0" prefHeight="25.0" prefWidth="450.0" />
-                  <TextField id="stopTableDirectory" fx:id="stopTableDirectory" layoutX="36.0" layoutY="148.0" prefHeight="25.0" prefWidth="450.0" />
-                  <Button id="stopTableBrowseButton" fx:id="stopTableBrowseButton" layoutX="486.0" layoutY="148.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
-                  <Label layoutX="35.0" layoutY="121.0" text="Megállókat tartalmazó tábla helye:" />
-                  <Button id="vehicleTableBrowseButton" fx:id="vehicleTableBrowseButton" layoutX="486.0" layoutY="219.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
-                  <Label layoutX="35.0" layoutY="189.0" text="Járműveket tartalmazó tábla helye:" />
-                  <Label layoutX="35.0" layoutY="20.0" text="Új menetrend létrehozása">
-                     <font>
-                        <Font size="19.0" />
-                     </font>
-                  </Label>
-                  <Label layoutX="35.0" layoutY="313.0" text="A programmal létrehozott menetrend importálása">
-                     <font>
-                        <Font size="18.0" />
-                     </font>
-                  </Label>
-                  <TextField id="timetableTableDirectory" fx:id="timetableTableDirectory" layoutX="35.0" layoutY="357.0" prefHeight="25.0" prefWidth="450.0" />
-                  <Button id="timetableBrowseButton" fx:id="timetableBrowseButton" layoutX="486.0" layoutY="357.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
-                  <ImageView fitHeight="500.0" fitWidth="724.0" layoutX="646.0" layoutY="63.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@FXML/route_artwork.jpg" />
-                     </image>
-                  </ImageView>
-                  <AnchorPane prefHeight="200.0" prefWidth="200.0" />
-               </children>
-            </AnchorPane>
+            <fx:include source="adatbevitelTab.fxml" />
          </content>
     </Tab>
     <Tab id="menetrendTervezeseTab" fx:id="menetrendTervezeseTab" text="Menetrend tervezése">
          <content>
             <AnchorPane prefHeight="436.0" prefWidth="656.0">
                <children>
+                  <AnchorPane id="schedulePlanningPage" fx:id="schedulePlanningPage" prefHeight="669.6" prefWidth="1250.4" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" >
+                     <children>
+                        <DatePicker id="datePicker" fx:id="datePicker" layoutX="34.0" layoutY="80.0" prefHeight="38.0" prefWidth="146.0" />
+                        <Label layoutX="19.0" layoutY="38.0" text="Válasszon dátumot" />
+                        <CheckBox id="cyclicCheckBox" fx:id="cyclicCheckBox" layoutX="369.0" layoutY="27.0" mnemonicParsing="false" prefHeight="58.0" prefWidth="186.0" text="Ütemes menetrend" />
+                        <Slider id="cyclicSlider" fx:id="cyclicSlider" layoutX="368.0" layoutY="116.0" />
+                        <Label layoutX="370.0" layoutY="78.0" text="Ütem:" />
+                        <Label id="cyclicLabel" fx:id="cyclicLabel" layoutX="470.0" layoutY="78.0" text="ütem idő" />
+                        <Label layoutX="369.0" layoutY="149.0" text="Alapütem" />
+                        <TableView id="routeTableForSchedule" fx:id="routeTableForSchedule" layoutX="7.0" layoutY="214.0" prefHeight="360.0" prefWidth="558.0" />
+                        <Button id="addTime" fx:id="addTime" layoutX="58.0" layoutY="605.0" mnemonicParsing="false" onAction="#addTimeToSchedule" text="Időpont hozzáadása" />
+                        <Button id="exitWithoutSaving" fx:id="exitWithoutSaving" layoutX="1227.0" layoutY="1.0" mnemonicParsing="false" onAction="#exitWithoutSaving" prefHeight="26.0" prefWidth="0.0" text="X" />
+                        <Button id="saveAndExit" fx:id="saveAndExit" layoutX="1140.0" layoutY="616.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="86.0" text="Kész" onAction="#finishSchedule"  />
+                        <Label layoutX="224.0" layoutY="47.0" text="Indulási időpont" />
+                        <Label layoutX="223.0" layoutY="114.0" text="Érkezési időpont" />
+                        <Label layoutX="28.0" layoutY="196.0" text="Elérhető útvonalak:" />
+                        <Spinner id="endHourSpinner" fx:id="endHourSpinner" layoutX="203.0" layoutY="136.0" prefHeight="26.0" prefWidth="70.0" />
+                        <Spinner id="startHourSpinner" fx:id="startHourSpinner" layoutX="203.0" layoutY="67.0" prefHeight="26.0" prefWidth="70.0" />
+                        <Spinner id="endMinSpinner" fx:id="endMinSpinner" layoutX="286.0" layoutY="136.0" prefHeight="26.0" prefWidth="70.0" />
+                        <Spinner id="startMinSpinner" fx:id="startMinSpinner" layoutX="286.0" layoutY="67.0" prefHeight="26.0" prefWidth="70.0" />
+                        <Label layoutX="280.0" layoutY="69.0" text=":" />
+                        <Label layoutX="280.0" layoutY="141.0" text=":" />
+                        <Agenda id="ScheduleAgenda" fx:id="ScheduleAgenda" layoutX="573.0" layoutY="67.0" prefHeight="529.0" prefWidth="669.0" />
+                        <Spinner id="dateSpinner" fx:id="dateSpinner" layoutX="565.0" layoutY="23.0" prefWidth="350.0" />
+                        <Spinner id="cycleSpinner" fx:id="cycleSpinner" layoutX="402.0" layoutY="170.0" prefHeight="31.0" prefWidth="113.0" />
+                        <TextField id="scheduleNameTextField" fx:id="scheduleNameTextField" layoutX="1013.0" layoutY="23.0" />
+                        <Label layoutX="1050.0" layoutY="4.0" text="Menetrend neve:" />
+                     </children>
+                  </AnchorPane>
                   <AnchorPane id="dialogePane" fx:id="dialogePane" disable="true" prefHeight="521.6" prefWidth="844.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <children>
                         <Button id="closeDialogeButton" fx:id="closeDialogeButton" contentDisplay="RIGHT" layoutX="1225.0" layoutY="2.0" mnemonicParsing="false" onAction="#exitDialogeWindow" prefHeight="26.0" prefWidth="22.0" text="x" textAlignment="CENTER" textOverrun="CLIP" />
@@ -120,6 +121,15 @@
                                     <Font size="19.0" />
                                  </font>
                               </Label>
+                              <Button id="createNewSchedule" fx:id="createNewSchedule" layoutX="70.0" layoutY="76.0" mnemonicParsing="false" onAction="#initSchedulePlanner" prefHeight="42.0" prefWidth="200.0" text="Új menetrend létrehozása" />
+                              <Button layoutX="317.0" layoutY="136.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="178.0" text="Menetrend törlése" />
+                              <Button layoutX="317.0" layoutY="76.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="200.0" text="Menetrend szerkesztése" />
+                              <TableView layoutX="18.0" layoutY="201.0" prefHeight="458.0" prefWidth="592.0">
+                                  <placeholder>
+                                       <Label text="nincs létrehozott menetrend" />
+                                  </placeholder>
+                              </TableView>
+                              <Label layoutX="14.0" layoutY="178.0" text="Eddigi menetrendek" />
                            </children>
                         </AnchorPane>
                      </items>

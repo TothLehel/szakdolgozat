@@ -30,6 +30,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.annotation.PostConstruct;
 import menetrendtervezo.entity.Driver;
+import menetrendtervezo.entity.Schedule;
 import menetrendtervezo.error.InputError;
 import menetrendtervezo.route.RouteDestinations;
 import menetrendtervezo.entity.Vehicle;
@@ -654,6 +655,47 @@ public class DataBase {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
             
+    }
+
+    public Schedule getScheduleByName(String text) {
+        try {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM schedule WHERE schedule_name = ?");
+            ps.setString(1, text);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                Schedule sch = new Schedule(
+                        rs.getString("schedule_name"), rs.getInt("driver_id"), rs.getTimestamp("start_date").toLocalDateTime(),
+                        rs.getTimestamp("end_date").toLocalDateTime(), rs.getString("license_plate"), rs.getInt("route_id"), rs.getString("app_group")
+                );
+                return sch;
+            }
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public void addScheduleAsList(ArrayList<Schedule> scheduleList) {   
+        try {          
+            PreparedStatement ps = conn.prepareStatement("INSERT INTO schedule(schedule_name, start_date, end_date,route_id, app_group) VALUES ( ?, ?, ?, ?, ?)");
+            Iterator<Schedule> it = scheduleList.iterator();
+            while(it.hasNext()){
+                Schedule s = it.next();
+                ps.setString(1, s.getScheduleName());
+                ps.setTimestamp(2, Timestamp.valueOf(s.getStartDate()));
+                ps.setTimestamp(3, Timestamp.valueOf(s.getEndTime()));
+                ps.setInt(4, s.getRouteId());
+                System.out.println(s.getRouteId());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            System.out.println("SCHEDULE INSERTED");
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
     }
 
 }

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="393.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="menetrendtervezo.controller.adatbevitelTabController">
+    <children>  
+        <TextField id="driverTableDirectory" fx:id="driverTableDirectory" layoutX="36.0" layoutY="81.0" prefHeight="25.0" prefWidth="450.0" />
+        <Button id="driverTableBrowseButton" fx:id="driverTableBrowseButton" layoutX="486.0" layoutY="81.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
+        <Label layoutX="35.0" layoutY="53.0" text="Sofőröket tartalmazó tábla helye:" />
+        <Button id="OkImportButton" fx:id="OkImportButton" layoutX="36.0" layoutY="259.0" mnemonicParsing="false" onAction="#ImportTables" text="OK" />
+        <TextField id="vehicleTableDirectory" fx:id="vehicleTableDirectory" layoutX="36.0" layoutY="219.0" prefHeight="25.0" prefWidth="450.0" />
+        <TextField id="stopTableDirectory" fx:id="stopTableDirectory" layoutX="36.0" layoutY="148.0" prefHeight="25.0" prefWidth="450.0" />
+        <Button id="stopTableBrowseButton" fx:id="stopTableBrowseButton" layoutX="486.0" layoutY="148.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
+        <Label layoutX="35.0" layoutY="121.0" text="Megállókat tartalmazó tábla helye:" />
+        <Button id="vehicleTableBrowseButton" fx:id="vehicleTableBrowseButton" layoutX="486.0" layoutY="219.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
+        <Label layoutX="35.0" layoutY="189.0" text="Járműveket tartalmazó tábla helye:" />
+        <Label layoutX="35.0" layoutY="20.0" text="Új menetrend létrehozása">
+            <font>
+                <Font size="19.0" />
+            </font>
+        </Label>
+        <Label layoutX="35.0" layoutY="313.0" text="A programmal létrehozott menetrend importálása">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+        <TextField id="timetableTableDirectory" fx:id="timetableTableDirectory" layoutX="35.0" layoutY="357.0" prefHeight="25.0" prefWidth="450.0" />
+        <Button id="timetableBrowseButton" fx:id="timetableBrowseButton" layoutX="486.0" layoutY="357.0" mnemonicParsing="false" onAction="#Browse" text="Tallózás" />
+        <ImageView fitHeight="500.0" fitWidth="724.0" layoutX="646.0" layoutY="63.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@route_artwork.jpg" />
+            </image>
+        </ImageView>
+        <AnchorPane prefHeight="200.0" prefWidth="200.0" />
+    </children>
+</AnchorPane>
