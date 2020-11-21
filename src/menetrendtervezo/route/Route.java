@@ -28,4 +28,9 @@ public class Route {
     public void setRouteName(String routeName) {
         this.routeName = routeName;
     }
+
+    @Override
+    public String toString() {
+        return "Route{" + "id=" + id + ", routeName=" + routeName + '}';
+    }
 }

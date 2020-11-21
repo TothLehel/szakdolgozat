@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
  */
 public class Schedule {
     private String scheduleName;
+    private int scheduleId;
     private int driverId;
     private LocalDateTime startDate;
     private LocalDateTime endTime;
@@ -23,9 +24,23 @@ public class Schedule {
     public String getScheduleName() {
         return scheduleName;
     }
+    @Override
+    public String toString() {
+        return "Schedule{" + "scheduleName=" + scheduleName + ", schedule_id=" + scheduleId + ", driverId=" + driverId + ", startDate=" + startDate + ", endTime=" + endTime + ", licensePlate=" + licensePlate + ", routeId=" + routeId + ", group=" + group + '}';
+    }
+
+    public int getScheduleId() {
+        return scheduleId;
+    }
+
+    public void setScheduleId(int scheduleId) {
+        this.scheduleId = scheduleId;
+    }
+    
     public Schedule() {}
 
-    public Schedule(String scheduleName, LocalDateTime startDate, LocalDateTime endTime, int routeId, String group) {
+    public Schedule(int scheduleId ,String scheduleName, LocalDateTime startDate, LocalDateTime endTime, int routeId, String group) {
+        this.scheduleId = scheduleId;
         this.scheduleName = scheduleName;
         this.startDate = startDate;
         this.endTime = endTime;
@@ -33,7 +48,8 @@ public class Schedule {
         this.group = group;
     }
 
-    public Schedule(String scheduleName, int driverId, LocalDateTime startDate, LocalDateTime endTime, String licensePlate, int routeId, String group) {
+    public Schedule(int scheduleId, String scheduleName, int driverId, LocalDateTime startDate, LocalDateTime endTime, String licensePlate, int routeId, String group) {
+        this.scheduleId = scheduleId;
         this.scheduleName = scheduleName;
         this.driverId = driverId;
         this.startDate = startDate;

@@ -37,5 +37,10 @@ public class RouteDestinations {
     public void setStopDistanceId(int stopDistanceId) {
         this.stopDistanceId = stopDistanceId;
     }
+
+    @Override
+    public String toString() {
+        return "RouteDestinations{" + "id=" + id + ", number=" + number + ", stopDistanceId=" + stopDistanceId + '}';
+    }
     
 }

@@ -13,7 +13,7 @@ GO
 ALTER TABLE [stop_distances] ADD FOREIGN KEY ([end_stop_id]) REFERENCES [stops] ([id])
 GO
 
-ALTER TABLE [schedule] ADD FOREIGN KEY ([license_plate]) REFERENCES [vehicles] ([license_plate])
+ALTER TABLE [schedule] ADD FOREIGN KEY ([license_plate]) REFERENCES [vehicles] ([license_plate]) ON DELETE CASCADE
 GO
 
 ALTER TABLE [schedule] ADD FOREIGN KEY ([route_id]) REFERENCES [routes] ([route_id])
@@ -25,7 +25,7 @@ GO
 ALTER TABLE [stop_distances] ADD FOREIGN KEY ([traffic_id]) REFERENCES [traffic] ([id])
 GO
 
-ALTER TABLE [route_destinations] ADD FOREIGN KEY ([stop_distance_id]) REFERENCES [stop_distances] ([id])
+ALTER TABLE [route_destinations] ADD FOREIGN KEY ([stop_distance_id]) REFERENCES [stop_distances] ([id]) ON DELETE CASCADE
 GO
 
 ALTER TABLE [stop_distances] ADD FOREIGN KEY ([roadId]) REFERENCES [road_types] ([roadId])

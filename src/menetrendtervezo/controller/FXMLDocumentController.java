@@ -5,21 +5,14 @@
  */
 package menetrendtervezo.controller;
 
-import com.sun.javafx.property.adapter.PropertyDescriptor;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.URL;
-import java.text.DateFormatSymbols;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.Month;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.TextStyle;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -28,34 +21,33 @@ import java.util.ResourceBundle;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.Skin;
-import javafx.scene.control.Skinnable;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Pane;
-import javafx.util.converter.LocalTimeStringConverter;
+import javafx.stage.Stage;
 import jfxtras.internal.scene.control.skin.agenda.AgendaDaySkin;
 import jfxtras.internal.scene.control.skin.agenda.AgendaWeekSkin;
-import jfxtras.scene.control.LocalDateTimePicker;
-import jfxtras.scene.control.LocalTimePicker;
 import jfxtras.scene.control.agenda.Agenda;
 import jfxtras.scene.control.agenda.Agenda.Appointment;
 import jfxtras.scene.control.agenda.Agenda.AppointmentImplLocal;
@@ -63,7 +55,9 @@ import jfxtras.scene.control.agenda.AgendaSkinSwitcher;
 import menetrendtervezo.datacontroller.DataController;
 import menetrendtervezo.entity.Schedule;
 import menetrendtervezo.file.FileManager;
-import menetrendtervezo.error.InputError;
+import menetrendtervezo.message.InputMessage;
+import menetrendtervezo.message.RouteMessage;
+import menetrendtervezo.message.ScheduleMessage;
 import menetrendtervezo.route.RoadType;
 import menetrendtervezo.route.Route;
 import menetrendtervezo.route.RouteDestinations;
@@ -76,16 +70,14 @@ import menetrendtervezo.spinnerfactory.HourSpinner;
 import menetrendtervezo.spinnerfactory.MinuteSpinner;
 import menetrendtervezo.spinnerfactory.YearAndMonthSpinner;
 
-/**
- *
- * @author tlehe
- */
 public class FXMLDocumentController implements Initializable {
     final FileManager FILE_MANAGER = new FileManager();
     File driverTable, stopTable, vehicleTable, timetableTable;
-    final InputError INPUT_ERROR = new InputError();
+    final InputMessage INPUT_ERROR = new InputMessage();
     final DataController DATA_CONTROLLER = new DataController();
-           
+    final ScheduleMessage SCHEDULE_MESSAGE = new ScheduleMessage();
+    private String changeScheduleName = null;
+    private final RouteMessage ROUTE_MESSAGE = new RouteMessage();       
     @FXML
     TextField driverTableDirectory, stopTableDirectory, 
             vehicleTableDirectory, timetableTableDirectory,
@@ -106,7 +98,7 @@ public class FXMLDocumentController implements Initializable {
     Button closeDialogeButton, exitWithoutSaving;
     
     @FXML 
-    TableView stopList, routeTable, allRouteTable,routeTableForSchedule;
+    TableView stopList, routeTable, allRouteTable,routeTableForSchedule, scheduleList;
     
     @FXML
     Label selectedStartLabel, selectedStopLabel, cyclicLabel;
@@ -133,10 +125,17 @@ public class FXMLDocumentController implements Initializable {
             endMinSpinner, dateSpinner, cycleSpinner;
     
     @FXML
-    Agenda ScheduleAgenda;
-     
+    Agenda scheduleAgenda;
+    
+    @FXML
+    TabPane tabPane;
+    
+    @FXML 
+    BeosztasTabController beosztasPageController;
+    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+                    
         TableColumn stopName = new TableColumn("megálló neve");
         stopName.setMinWidth(160);
         stopName.setCellValueFactory(new PropertyValueFactory<Stop,String>("name"));
@@ -152,6 +151,19 @@ public class FXMLDocumentController implements Initializable {
         initRouteTable();
         initAllRouteTable();
         initRouteTableForSchedule();
+        initScheduleTable();
+        tabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>(){
+            @Override
+            public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
+                if("beosztasTab".equals(newValue.getId())){
+                    System.out.println("tab change");
+                    beosztasPageController.init(scheduleList.getItems());
+                }else{
+                    beosztasPageController.clearLists();
+                }
+            }
+            
+        });
         
     }
     private void initAllRouteTable(){
@@ -181,9 +193,20 @@ public class FXMLDocumentController implements Initializable {
         
         
     }
+    private void initScheduleTable(){
+        if(scheduleList.getColumns().isEmpty()){
+            TableColumn nameCol = new TableColumn("Menetrend neve");
+            nameCol.setCellValueFactory(new PropertyValueFactory<Schedule,String>("scheduleName"));
+            nameCol.setMinWidth(225);
+            nameCol.setMaxWidth(225);
+            scheduleList.getColumns().add(nameCol);
+        }
+        scheduleList.setItems(FXCollections.observableList(new ArrayList<>(DATA_CONTROLLER.listSchedulesOnlyOnce())));
+        
+    }
     private void isCyclic(){
         cyclicCheckBox.setSelected(false);
-        cycleSpinner.setDisable(true);;
+        cycleSpinner.setDisable(true);
         cyclicSlider.setDisable(true);
         EventHandler eh = new EventHandler<ActionEvent>(){
             @Override
@@ -229,10 +252,11 @@ public class FXMLDocumentController implements Initializable {
         YearAndMonthSpinner yms = new YearAndMonthSpinner();
         DaySpinner ds = new DaySpinner();
         dateSpinner.setValueFactory(yms.getYearAndMonthSpinner());
-        AgendaSkinSwitcher sk = new AgendaSkinSwitcher(ScheduleAgenda);
-        ScheduleAgenda.setAllowDragging(false);
-        ScheduleAgenda.setDisplayedLocalDateTime(LocalDateTime.now());
-        ScheduleAgenda.getSkin().getSkinnable().skinProperty().addListener(new ChangeListener<Skin<?>>(){
+        AgendaSkinSwitcher sk = new AgendaSkinSwitcher(scheduleAgenda);
+        scheduleAgenda.setAllowDragging(false);
+        scheduleAgenda.setAllowResize(false);
+        scheduleAgenda.setDisplayedLocalDateTime(LocalDateTime.now());
+        scheduleAgenda.getSkin().getSkinnable().skinProperty().addListener(new ChangeListener<Skin<?>>(){
             @Override
             public void changed(ObservableValue<? extends Skin<?>> observable, Skin<?> oldValue, Skin<?> newValue) {
                 if(newValue.getClass().equals(AgendaDaySkin.class)){                 
@@ -250,10 +274,10 @@ public class FXMLDocumentController implements Initializable {
         dateSpinner.valueProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if(ScheduleAgenda.getSkin().getClass().equals(AgendaWeekSkin.class)){
-                    ScheduleAgenda.setDisplayedLocalDateTime(yms.getFirstDayOfWeek());
+                if(scheduleAgenda.getSkin().getClass().equals(AgendaWeekSkin.class)){
+                    scheduleAgenda.setDisplayedLocalDateTime(yms.getFirstDayOfWeek());
                 }else{
-                    ScheduleAgenda.setDisplayedLocalDateTime(ds.getChangedDay());
+                    scheduleAgenda.setDisplayedLocalDateTime(ds.getChangedDay());
                 }
                 
             }
@@ -386,15 +410,11 @@ public class FXMLDocumentController implements Initializable {
         distanceTextField.setText("");
         roadChoiceBox.getSelectionModel().select(0);
         System.out.println("exiting..");
+        
     }
     @FXML
     public void exitWithoutSaving(ActionEvent event){   
         setSchedulePlannerWindowToDefault();
-        datePicker.getEditor().setText("");
-        routeTableForSchedule.getSelectionModel().select(null);
-        ScheduleAgenda.appointments().clear();
-        ScheduleAgenda.setSkin(new AgendaWeekSkin(ScheduleAgenda));
-        ScheduleAgenda.setDisplayedLocalDateTime(LocalDateTime.now());
     }
     
     private void setSchedulePlannerWindowToDefault() {
@@ -402,66 +422,63 @@ public class FXMLDocumentController implements Initializable {
         splitPane.setDisable(false);
         schedulePlanningPage.setVisible(false);
         schedulePlanningPage.setDisable(true);
+        datePicker.getEditor().setText("");
+        routeTableForSchedule.getSelectionModel().select(null);
+        scheduleAgenda.appointments().clear();
+        scheduleAgenda.setSkin(new AgendaWeekSkin(scheduleAgenda));
+        scheduleAgenda.setDisplayedLocalDateTime(LocalDateTime.now());
+        scheduleNameTextField.setText("");
+        changeScheduleName = null;
         
-        //minden táblát kitörölni üresre ilyenkor 
     }
     @FXML
     public void finishAddingRoutes(ActionEvent event){
-        if(routeNameTextField != null && !"".equals(routeNameTextField.getText().trim()) && routeTable.getItems().size() >= 1){
+        if(routeNameTextField != null 
+                && !"".equals(routeNameTextField.getText().trim()) 
+                && routeTable.getItems().size() >= 1){
             Route route = new Route();
             route.setRouteName(routeNameTextField.getText());
-            System.out.println(route.toString());
-            if(routeId != -1){
-                route.setId(routeId);
-                DATA_CONTROLLER.changeRoute(route);
-                DATA_CONTROLLER.deleteRouteDestinationById(routeId);
-                DATA_CONTROLLER.deleteStopDistancesByRouteId(routeId);
-                DATA_CONTROLLER.deleteRouteTableViewByRouteId(routeId);
-                routeId = -1;
-            }else{
-                DATA_CONTROLLER.addRoute(route);
-            }
-            System.out.println("routeid: " +route.getId());
+            DATA_CONTROLLER.updateOrInsertRoute(routeId, route);
             ArrayList<StopDistance> routeArrayList = new ArrayList<> (routeTable.getItems());
-            RouteDestinations routeDestinations = new RouteDestinations();
-            routeDestinations.setId(route.getId());
-            //stop distance
-            RouteTableView routeTableView = new RouteTableView();
+            DATA_CONTROLLER.updateOrInsertStopDistances(routeId, routeArrayList);
             double dist = 0;
-            
-            
+            ArrayList<RouteDestinations> routeDestinationsList = new ArrayList<>();
             for(StopDistance sd : routeArrayList){
-                DATA_CONTROLLER.addStopDistance(sd);
+                RouteDestinations routeDestinations = new RouteDestinations();
+                routeDestinations.setId(route.getId());
                 routeDestinations.setStopDistanceId(sd.getId());
                 routeDestinations.setNumber(sd.getNumber());
-                System.out.println("RouteDest: " + routeDestinations.getId() + " " + routeDestinations.getNumber() + " " + routeDestinations.getStopDistanceId());
-                
-                DATA_CONTROLLER.addRouteDestination(routeDestinations);
+                routeDestinationsList.add(routeDestinations);
                 dist += sd.getDistance();
             }
+            DATA_CONTROLLER.updateOrInsertRouteDest(routeId, routeDestinationsList);
+            RouteTableView routeTableView = new RouteTableView();
             routeTableView.setRouteId(route.getId());
             routeTableView.setRouteName(route.getRouteName());
             routeTableView.setStartName(routeArrayList.get(0).getSelectedStartName());
             routeTableView.setEndName(routeArrayList.get(routeArrayList.size()-1).getSelectedStopName());
             routeTableView.setDistanceSum(dist);
-            int numOfStops = 0;
+            int numOfStops = 1;
             for(int i = 1; i < routeArrayList.size(); i++){
                 StopDistance prev = routeArrayList.get(i-1);
                 StopDistance selected = routeArrayList.get(i);
-                if(!prev.getSelectedStartName().equals(selected.getSelectedStartName()) || !prev.getSelectedStopName().equals(selected.getSelectedStopName())){
+                if(!prev.getSelectedStartName().equals(selected.getSelectedStartName()) 
+                        || !prev.getSelectedStopName().equals(selected.getSelectedStopName())){
                     numOfStops++;    
                 }
             }
-            numOfStops++;
             routeTableView.setNumberCount(numOfStops);
-            DATA_CONTROLLER.addRouteTableView(routeTableView);
+            DATA_CONTROLLER.updateOrInsertRouteTableView(routeTableView, routeId);
+            routeId = -1;
             allRouteTable.setItems(FXCollections.observableList(DATA_CONTROLLER.listRouteTableViews()));
-            
+            setDialogeWindowToDefault();
         }else{
-            //error
+            if(routeNameTextField == null || "".equals(routeNameTextField.getText().trim())){
+                ROUTE_MESSAGE.emptyRouteNameError();
+            }else{
+                ROUTE_MESSAGE.emptyStopTableListError();
+            }
         }
-        System.out.println("route inserted!");
-        setDialogeWindowToDefault();
     }
     
     @FXML
@@ -478,23 +495,34 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     public void addNewRoad(ActionEvent event){
         String selectedFromChoiceBox = String.valueOf(roadChoiceBox.getSelectionModel().selectedItemProperty().getValue());
-        if(!"".equals(distanceTextField.getText()) && Double.parseDouble(distanceTextField.getText()) > 0 
-                && !"".equals(selectedStartLabel.getText()) && !"".equals(selectedStopLabel.getText()) 
-                &&  !"null".equals(selectedFromChoiceBox) ){
-                
+        ObservableList<StopDistance> stopDistanceList = (ObservableList<StopDistance>) routeTable.getItems();
+        String selectedStartName = selectedStartLabel.getText();
+        String selectedEndName = selectedStopLabel.getText();
+        if(stopDistanceList.size() >= 1 ){
+            StopDistance prev = (StopDistance)routeTable.getItems().get(routeTable.getItems().size()-1);
+            if(!prev.getSelectedStopName().equals(selectedStartName)
+                    && (!prev.getSelectedStopName().equals(selectedEndName)
+                    || !prev.getSelectedStartName().equals(selectedStartName)) ){
+                ROUTE_MESSAGE.notConnectedStopDistancesError();
+                return;
+            }
+        }
+        try{
+            Double distanceDouble = Double.parseDouble(distanceTextField.getText().replace(",", "."));
+            if(!"".equals(distanceTextField.getText()) && distanceDouble > 0
+                    && !"Selected start".equals(selectedStartLabel.getText()) && !"Selected stop".equals(selectedStopLabel.getText())
+                    &&  !"null".equals(selectedFromChoiceBox) && !selectedStartName.equals(selectedEndName) ){
                 StopDistance sd = new StopDistance();
                 sd.setNumber(routeTable.getItems().size()+1);
-                sd.setSelectedStartName(selectedStartLabel.getText());
-                sd.setSelectedStopName(selectedStopLabel.getText());
-                sd.setDistance(Double.parseDouble(distanceTextField.getText()));
+                sd.setSelectedStartName(selectedStartName);
+                sd.setSelectedStopName(selectedEndName);
+                sd.setDistance(distanceDouble);
                 sd.setRoadName(selectedFromChoiceBox);
                 for(Stop stopDistance : (ObservableList<Stop>)stopList.getItems()){
                     if(stopDistance.getName() == null ? sd.getSelectedStartName() == null : stopDistance.getName().equals(sd.getSelectedStartName())){
                         sd.setStartId(stopDistance.getId());
-                        System.out.println("stopId for start: " + stopDistance.getId());
                     }else if(stopDistance.getName() == null ? sd.getSelectedStopName() == null : stopDistance.getName().equals(sd.getSelectedStopName())){
                         sd.setEndId(stopDistance.getId());
-                        System.out.println("stopId for end: " + stopDistance.getId() );
                     }
                 }
                 ArrayList<RoadType> roadTypes = DATA_CONTROLLER.readRoadTypes();
@@ -503,10 +531,20 @@ public class FXMLDocumentController implements Initializable {
                         sd.setRoadId(rd.getRoadId());
                     }
                 }
-                
                 routeTable.getItems().add(sd);
-        }else{
-            System.out.println("ERROR creation");
+            }else if(distanceTextField.getText().equals("")){
+                ROUTE_MESSAGE.emptyRouteDistanceError();
+            }else if(distanceDouble <= 0){
+                ROUTE_MESSAGE.routeDistanceLessThanZero();
+            }else if("Selected start".equals(selectedStartLabel.getText())){
+                ROUTE_MESSAGE.startIsNotSetError();
+            }else if("Selected stop".equals(selectedEndName)){
+                ROUTE_MESSAGE.stopIsNotSetError();
+            }else{
+                ROUTE_MESSAGE.startEqualsStopError();
+            }
+        }catch(NumberFormatException ex){
+            ROUTE_MESSAGE.routeDistanceFormatError();
         }
     }
     @FXML
@@ -584,91 +622,137 @@ public class FXMLDocumentController implements Initializable {
     }
     @FXML
     public void addTimeToSchedule(ActionEvent event){
-        LocalDateTime startTime;
-        startTime = datePicker.getValue().atTime(LocalTime.of(Integer.parseInt(startHourSpinner.getEditor().getText()), Integer.parseInt(startMinSpinner.getEditor().getText())));
-        LocalDateTime endTime;
-        endTime = datePicker.getValue().atTime(LocalTime.of(Integer.parseInt(endHourSpinner.getEditor().getText()), Integer.parseInt(endMinSpinner.getEditor().getText())));
-        if(!datePicker.getEditor().getText().trim().equals("") 
-                && routeTableForSchedule.getSelectionModel().getSelectedItem() != null
-                && !startTime.equals(endTime)){
-            int randomNumber = (int) (Math.random() * 20);
-            String groupString = "group" + randomNumber;
-            if(endTime.isBefore(startTime)){
-                endTime = endTime.plusDays(1);
-            }
-            
-            if(cyclicCheckBox.isSelected())
-            {
-                LocalDateTime difTime = endTime.minusMinutes(startTime.getHour()*60 + startTime.getMinute());
-                int difference = difTime.getMinute() + difTime.getHour() * 60;
-                System.out.println(difference);
-                LocalDateTime cycleLastTime = startTime.plusHours((int)cyclicSlider.getValue());
-                if((cycleLastTime.getDayOfMonth()-1) == startTime.getDayOfMonth()){
-                    System.out.println("nem megfelelő ütemes");
-                }else{
-                    int begin = startTime.getHour() * 60 + startTime.getMinute();
-                    int end = cycleLastTime.getHour() * 60 + cycleLastTime.getMinute();
-                    LocalTime cycle = (LocalTime)cycleSpinner.getValue();
-                    LocalDateTime firstDayOfWeek = LocalDateTime.now().with(WeekFields.of(Locale.getDefault()).getFirstDayOfWeek());
-                    LocalDateTime lastDayOfWeek = LocalDateTime.now().with(DayOfWeek.of(((WeekFields.of(Locale.getDefault()).getFirstDayOfWeek().getValue() + 5) % DayOfWeek.values().length) + 1));
-                    int interval = cycle.getHour() * 60 + cycle.getMinute();
-                    int first = firstDayOfWeek.getDayOfMonth();
-                    int last = lastDayOfWeek.getDayOfMonth();
-                    ArrayList<AppointmentImplLocal> appointmentList = new ArrayList<>();
-                    for(int day = first; day <= last; day++){
-                        for (int time = begin; time <= end; time += interval) {
-                            AppointmentImplLocal appoinment = new Agenda.AppointmentImplLocal()
-                                    .withStartLocalDateTime(startTime.withHour(time / 60).withMinute(time % 60).withDayOfMonth(day))
-                                    .withEndLocalDateTime(startTime.withHour(time / 60).withMinute(time % 60).plusMinutes(difference).withDayOfMonth(day))
-                                    .withSummary(((RouteTableView)routeTableForSchedule.getSelectionModel().getSelectedItem()).getRouteName())
-                                    .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass(groupString));
-                            appointmentList.add(appoinment);
-                        }
-                    }
-                    ScheduleAgenda.appointments().addAll(appointmentList);
+        if(datePicker.getValue() != null){
+            LocalDateTime startTime;
+            startTime = datePicker.getValue().atTime(LocalTime.of(Integer.parseInt(startHourSpinner.getEditor().getText()), Integer.parseInt(startMinSpinner.getEditor().getText())));
+            LocalDateTime endTime;
+            endTime = datePicker.getValue().atTime(LocalTime.of(Integer.parseInt(endHourSpinner.getEditor().getText()), Integer.parseInt(endMinSpinner.getEditor().getText())));
+            if(!datePicker.getEditor().getText().trim().equals("") 
+                    && routeTableForSchedule.getSelectionModel().getSelectedItem() != null
+                    && !startTime.equals(endTime)){
+                int randomNumber = (int) (Math.random() * 20);
+                String groupString = "group" + randomNumber;
+                if(endTime.isBefore(startTime)){
+                    endTime = endTime.plusDays(1);
                 }
-            }else{
-                
-                ScheduleAgenda.appointments().addAll(
-                        new Agenda.AppointmentImplLocal()
-                                .withStartLocalDateTime(startTime)
-                                .withEndLocalDateTime(endTime)
-                                .withSummary(((RouteTableView)routeTableForSchedule.getSelectionModel().getSelectedItem()).getRouteName())
-                                .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass(groupString))
-                );
+
+                if(cyclicCheckBox.isSelected())
+                {
+                    LocalDateTime difTime = endTime.minusMinutes(startTime.getHour()*60 + startTime.getMinute());
+                    int difference = difTime.getMinute() + difTime.getHour() * 60;
+                    LocalDateTime cycleLastTime = startTime.plusHours((int)cyclicSlider.getValue());
+                    if((cycleLastTime.getDayOfMonth()-1) == startTime.getDayOfMonth()){
+                        System.out.println("nem megfelelő ütemes");
+                    }else{
+                        int begin = startTime.getHour() * 60 + startTime.getMinute();
+                        int end = cycleLastTime.getHour() * 60 + cycleLastTime.getMinute();
+                        LocalTime cycle = (LocalTime)cycleSpinner.getValue();
+                        LocalDate firstDayOfWeek = datePicker.getValue().with(WeekFields.of(Locale.getDefault()).getFirstDayOfWeek());
+                        LocalDate lastDayOfWeek = datePicker.getValue().with(DayOfWeek.of(((WeekFields.of(Locale.getDefault()).getFirstDayOfWeek().getValue() + 5) % DayOfWeek.values().length) + 1));
+                        int interval = cycle.getHour() * 60 + cycle.getMinute();
+                        int first = firstDayOfWeek.getDayOfMonth();
+                        int last = lastDayOfWeek.getDayOfMonth();
+                        ArrayList<Appointment> appointmentList = new ArrayList<>();
+                        for(int day = first; day <= last; day++){
+                            for (int time = begin; time <= end; time += interval) {
+                                AppointmentImplLocal appoinment = new Agenda.AppointmentImplLocal()
+                                        .withStartLocalDateTime(startTime.withHour(time / 60).withMinute(time % 60).withDayOfMonth(day))
+                                        .withEndLocalDateTime(startTime.withHour(time / 60).withMinute(time % 60).plusMinutes(difference).withDayOfMonth(day))
+                                        .withSummary(((RouteTableView)routeTableForSchedule.getSelectionModel().getSelectedItem()).getRouteName())
+                                        .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass(groupString));
+                                appointmentList.add(appoinment);
+                            }
+                        }
+                        scheduleAgenda.appointments().addAll(appointmentList);
+                    }
+                }else{
+
+                    scheduleAgenda.appointments().addAll(
+                            new Agenda.AppointmentImplLocal()
+                                    .withStartLocalDateTime(startTime)
+                                    .withEndLocalDateTime(endTime)
+                                    .withSummary(((RouteTableView)routeTableForSchedule.getSelectionModel().getSelectedItem()).getRouteName())
+                                    .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass(groupString))
+                    );
+                }
+
             }
-            
         }
     }
-    
     @FXML
     public void finishSchedule(ActionEvent event){
         if(!scheduleNameTextField.getText().trim().equals("")){
             Schedule sched = DATA_CONTROLLER.getScheduleByName(scheduleNameTextField.getText().trim());
-            if(sched == null){
-                sched = new Schedule();
-                sched.setScheduleName(scheduleNameTextField.getText().trim());
-                
-                ObservableList<Appointment> obs = ScheduleAgenda.appointments();
+            if(sched == null ||  changeScheduleName.equals(sched.getScheduleName())){
+                ObservableList<Appointment> obs = scheduleAgenda.appointments();
                 ObservableList<RouteTableView> rtw = routeTableForSchedule.getItems();
-                ArrayList<Schedule> scheduleList = new ArrayList<>();
+                ArrayList<Schedule> schedules = new ArrayList<>();
                 for(Appointment app : obs){
+                    sched = new Schedule();
+                    sched.setScheduleName(scheduleNameTextField.getText().trim());
                     sched.setStartDate(app.getStartLocalDateTime());
                     sched.setEndTime(app.getEndLocalDateTime());
                     sched.setGroup(app.getAppointmentGroup().getStyleClass());
                     for(RouteTableView r : rtw){
                         if(r.getRouteName().equals(app.getSummary())){
                             sched.setRouteId(r.getRouteId());
-                            scheduleList.add(sched); 
+                            schedules.add(sched); 
                             break;
                         }
                     }   
                 }
-                DATA_CONTROLLER.addScheduleAsList(scheduleList);
+                DATA_CONTROLLER.updateOrInsertScheduleAsList(changeScheduleName, schedules);
+                changeScheduleName = null;
+                scheduleList.setItems(FXCollections.observableList(new ArrayList<>(DATA_CONTROLLER.listSchedulesOnlyOnce())));
+                setSchedulePlannerWindowToDefault();
+                datePicker.getEditor().setText("");
+                routeTableForSchedule.getSelectionModel().select(null);
+                scheduleAgenda.appointments().clear();
+                scheduleAgenda.setSkin(new AgendaWeekSkin(scheduleAgenda));
+                scheduleAgenda.setDisplayedLocalDateTime(LocalDateTime.now());
+                scheduleNameTextField.setText("");
             }else{
-                System.out.println("already a schedule based on this name");
+                SCHEDULE_MESSAGE.scheduleAlreadyExists();
             }
         }
-        //scheduleNameTextField.
+        
     }
+    @FXML
+    public void deleteSchedule(ActionEvent event){
+        Schedule selected = (Schedule)(scheduleList.getSelectionModel().getSelectedItem());
+        if(selected != null){
+            DATA_CONTROLLER.deleteScheduleByName(selected.getScheduleName());
+            scheduleList.setItems(FXCollections.observableList(new ArrayList<>(DATA_CONTROLLER.listSchedulesOnlyOnce())));
+        }
+    }
+    @FXML
+    public void changeSchedule(ActionEvent event){
+        Schedule selected = (Schedule)(scheduleList.getSelectionModel().getSelectedItem());
+        if(selected != null){
+            ArrayList<Schedule> sList = DATA_CONTROLLER.changeScheduleByName(selected.getScheduleName());
+            initSchedulePlanner();
+            scheduleNameTextField.setText(selected.getScheduleName());
+            ArrayList<RouteTableView> rtwList = new ArrayList<>(routeTableForSchedule.getItems());
+            ArrayList<Appointment> appList = new ArrayList<>();
+            for(Schedule s : sList){
+                RouteTableView r;
+                for(RouteTableView rtw : rtwList){
+                    if(rtw.getRouteId() == s.getRouteId()){
+                        r = rtw;
+                        appList.add(new Agenda.AppointmentImplLocal()
+                                .withStartLocalDateTime(s.getStartDate())
+                                .withEndLocalDateTime(s.getEndTime())
+                                .withSummary(r.getRouteName())
+                                .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass(s.getGroup()))
+                        );
+                        break;
+                    }
+                }    
+            }
+            scheduleAgenda.appointments().addAll(appList);
+            changeScheduleName = selected.getScheduleName();
+        }
+    }
+    
+    
 }

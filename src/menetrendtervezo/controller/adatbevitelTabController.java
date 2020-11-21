@@ -14,7 +14,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import menetrendtervezo.datacontroller.DataController;
-import menetrendtervezo.error.InputError;
 import menetrendtervezo.file.FileManager;
 
 /**
@@ -24,7 +23,6 @@ import menetrendtervezo.file.FileManager;
 public class adatbevitelTabController implements Initializable{
     final FileManager FILE_MANAGER = new FileManager();
     File driverTable, stopTable, vehicleTable, timetableTable;
-    final InputError INPUT_ERROR = new InputError();
     final DataController DATA_CONTROLLER = new DataController();
            
     @FXML
@@ -62,42 +60,22 @@ public class adatbevitelTabController implements Initializable{
                 stopTableDirectory.setText(stopTable.getAbsolutePath());
             }
         }
-        else if(btn.getId().equals(timetableBrowseButton.getId())){
-            FILE_MANAGER.setTitle("Menetrendet tartalmazó tábla kiválasztása");
-            timetableTable = FILE_MANAGER.TableBrowse();
-            if(timetableTable != null){
-                timetableTableDirectory.setText(timetableTable.getAbsolutePath());
-            }
-        }
     }
     @FXML
-    private void ImportTables(ActionEvent event) {
+    private void importTables(ActionEvent event) {
         driverTable = new File(driverTableDirectory.getText());
         stopTable = new File(stopTableDirectory.getText());
         vehicleTable = new File(vehicleTableDirectory.getText());
-        timetableTable = new File(timetableTableDirectory.getText());
         
-        Boolean driverTableExists = driverTable.isFile();
-        Boolean stopTableExists = stopTable.isFile();
-        Boolean vehicleTableExists = vehicleTable.isFile();
-        Boolean timetableExists = timetableTable.isFile();
-        
-        if(timetableExists){
-           //timetable beolvasás 
-            System.out.println("timetable olvasása");
+        if(driverTable.isFile()){
+            FILE_MANAGER.readTable(driverTable, "driver");
         }
-        else{
-            if(driverTableExists){
-                FILE_MANAGER.ReadDriverTable(driverTable);
-            }
-            if(stopTableExists){
-                FILE_MANAGER.ReadStopTable(stopTable);
-            }
-            if(vehicleTableExists){
-                FILE_MANAGER.ReadVehicleTable(vehicleTable);
-            }
+        if(stopTable.isFile()){
+            FILE_MANAGER.readTable(stopTable, "stop");
         }
-        
+        if(vehicleTable.isFile()){
+            FILE_MANAGER.readTable(vehicleTable, "vehicle");
+        }
     } 
 
     @Override

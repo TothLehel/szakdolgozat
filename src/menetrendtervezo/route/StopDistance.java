@@ -101,4 +101,9 @@ public class StopDistance {
         this.number = number;
     }
 
+    @Override
+    public String toString() {
+        return "StopDistance{" + "id=" + id + ", startId=" + startId + ", endId=" + endId + ", distance=" + distance + ", roadId=" + roadId + ", traficId=" + traficId + ", selectedStartName=" + selectedStartName + ", selectedStopName=" + selectedStopName + ", roadName=" + roadName + ", number=" + number + '}';
+    }
+
 }

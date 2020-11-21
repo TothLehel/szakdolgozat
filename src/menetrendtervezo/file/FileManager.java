@@ -5,13 +5,12 @@
  */
 package menetrendtervezo.file;
 
-import menetrendtervezo.error.InputError;
-import menetrendtervezo.database.DataBase;
+import menetrendtervezo.message.InputMessage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,8 +31,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  */
 public class FileManager extends DataController{
     private static final FileChooser FILE_CHOOSER = new FileChooser();
-    private static final DataController DC = new DataController();
-    private static final InputError INPUT_ERROR = new InputError();
+    private static final DataController DATA_CONTROLLER = new DataController();
+    private static final InputMessage INPUT_MESSAGE = new InputMessage();
 
     public void setTitle(String title) {
         FILE_CHOOSER.setTitle(title);
@@ -46,39 +45,7 @@ public class FileManager extends DataController{
         File table = FILE_CHOOSER.showOpenDialog(stage);
         return table;
     }
-    public void ReadDriverTable(File table){
-        XSSFWorkbook workbook = createWorkbook(table);
-        if(workbook != null){
-            iterateDriverWorkbook(workbook);
-            try {
-                workbook.close();
-            } catch (IOException ex) {
-                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-    public void ReadVehicleTable(File table){
-        XSSFWorkbook workbook = createWorkbook(table);
-        if(workbook != null){
-            iterateVehicleWorkbook(workbook);
-            try {
-                workbook.close();
-            } catch (IOException ex) {
-                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-     public void ReadStopTable(File table){
-        XSSFWorkbook workbook = createWorkbook(table);
-        if(workbook != null){
-            iterateStopWorkbook(workbook);
-            try {
-                workbook.close();
-            } catch (IOException ex) {
-                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
+   
     private static XSSFWorkbook createWorkbook(File file){
         FileInputStream fis = null;
         try {
@@ -103,75 +70,79 @@ public class FileManager extends DataController{
     private static void iterateDriverWorkbook(XSSFWorkbook workbook){
         XSSFSheet sheet = workbook.getSheetAt(0);
         Iterator<Row> rowIt = sheet.iterator();
+        boolean succesfull = true;
+        DATA_CONTROLLER.deleteSQLTable("dates");
+        DATA_CONTROLLER.deleteSQLTable("drivers");
         if(isDriverTableFormatCorrect(sheet)){
             while(rowIt.hasNext()){
                 Row row = rowIt.next();
-                if(row.getRowNum() >= 2 ){
-                    //System.out.println(row.getRowNum());
-                    DC.createDriver(row);
-                }
-                /*Iterator<Cell> cellIt = row.iterator();
-                
-                while(cellIt.hasNext()){
-                    Cell cell = row.getCell(cellIt.next().getColumnIndex(), Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
-                    if(cell != null){
-                        CellValue value = evaluator.evaluate(cell);
-                        Cell day;
-                        if(cell.getColumnIndex() %2 == 0){
-                            day = sheet.getRow(0).getCell(cell.getColumnIndex());
-                        }else{
-                            day = sheet.getRow(0).getCell(cell.getColumnIndex() - 1);
+                if(row.getRowNum() >= 2 ){ 
+                    try {
+                        DATA_CONTROLLER.createDriver(row);
+                    } catch (SQLIntegrityConstraintViolationException ex) {
+                        switch(ex.getMessage()){
+                            case "driver" :
+                                INPUT_MESSAGE.driverAlreadyExists(row);
+                                break;
+                            case "date" :
+                                INPUT_MESSAGE.dateAlreadyExists(row);
+                                break;
                         }
-                        evaluator.evaluateInCell(day);
-                        switchDriverTable(cell, day, value);
+                        succesfull = false;
+                        DATA_CONTROLLER.deleteSQLTable("dates");
+                        DATA_CONTROLLER.deleteSQLTable("drivers");
+                        break;
                     }
-                }*/
+                }
             }
-            
-            DC.deleteSQLTable("dates");
-            DC.deleteSQLTable("drivers");
+            if(succesfull){
+                DATA_CONTROLLER.listDrivers();
+                INPUT_MESSAGE.succesfulDriverTableInput();
+            }
         }else{
-            INPUT_ERROR.driverTableFormatError();
-            
+            INPUT_MESSAGE.driverTableFormatError();
         }
-        //DB.listDrivers();
     }
     private static void iterateVehicleWorkbook(XSSFWorkbook workbook){
         XSSFSheet sheet = workbook.getSheetAt(0);
         Iterator<Row> rowIt = sheet.iterator();
-        FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-        Cell vehicleNameHeader = sheet.getRow(0).getCell(0);
-        Cell vehicleLicenceHeader = sheet.getRow(0).getCell(1);
-        Cell vehicleTypeHeader = sheet.getRow(0).getCell(2);
-        if(isVehicleTableFormatCorrect(vehicleNameHeader, vehicleLicenceHeader, vehicleTypeHeader)){
+        boolean succesful = true;
+        if(isVehicleTableFormatCorrect(sheet)){
+            DATA_CONTROLLER.deleteSQLTable("vehicles");
             while(rowIt.hasNext()){
                 Row row = rowIt.next();
-                if(row.getRowNum() > 1 ){
-                    DC.createVehicle(row);
+                if(row.getRowNum() > 1 ){  
+                    try {
+                        DATA_CONTROLLER.createVehicle(row);
+                    } catch (SQLIntegrityConstraintViolationException ex) {
+                        INPUT_MESSAGE.licencePlateExists(row);
+                        DATA_CONTROLLER.deleteSQLTable("vehicles");
+                        succesful = false;
+                        break;
+                    }
                 }
             }
-            
+            if(succesful){
+                INPUT_MESSAGE.succesfulVehicleTableInput();
+            }
         }else{
-            INPUT_ERROR.vehicleTableFormatError();
-            
+            INPUT_MESSAGE.vehicleTableFormatError();     
         }
     }
     private static void iterateStopWorkbook(XSSFWorkbook workbook){
         XSSFSheet sheet = workbook.getSheetAt(0);
         Iterator<Row> rowIt = sheet.iterator();
-        FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-        Cell stopNameHeader = sheet.getRow(0).getCell(0);
-        Cell capacityHeader = sheet.getRow(0).getCell(1);
-        if(isStopTableFormatCorrect(stopNameHeader, capacityHeader)){
+        if(isStopTableFormatCorrect(sheet)){
+            DATA_CONTROLLER.deleteSQLTable("stops");
             while(rowIt.hasNext()){
                 Row row = rowIt.next();
                 if(row.getRowNum() != 0){
-                    DC.createStop(row);
+                    DATA_CONTROLLER.createStop(row);
                 }
             }
-            
+            INPUT_MESSAGE.succesfulStopTableInput();
         }else{
-            INPUT_ERROR.stopTableFormatError();
+            INPUT_MESSAGE.stopTableFormatError();
             
         }
         
@@ -209,7 +180,10 @@ public class FileManager extends DataController{
         }
         return true;
     }
-    private static Boolean isVehicleTableFormatCorrect(Cell vehicleNameHeader, Cell vehicleLicenceHeader, Cell vehicleTypeHeader){
+    private static Boolean isVehicleTableFormatCorrect(XSSFSheet sheet){
+        Cell vehicleNameHeader = sheet.getRow(0).getCell(0,Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+        Cell vehicleLicenceHeader = sheet.getRow(0).getCell(1,Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+        Cell vehicleTypeHeader = sheet.getRow(0).getCell(2,Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
         if(vehicleNameHeader != null && vehicleLicenceHeader != null && vehicleTypeHeader != null){
             if(vehicleNameHeader.getCellType() == CellType.STRING 
                     && vehicleLicenceHeader.getCellType() == CellType.STRING
@@ -224,11 +198,13 @@ public class FileManager extends DataController{
         }
         return false;
     }
-    private static Boolean isStopTableFormatCorrect(Cell stopNameHeader, Cell capacityHeader){
+    private static Boolean isStopTableFormatCorrect(XSSFSheet sheet){
+        Cell stopNameHeader = sheet.getRow(0).getCell(0,Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+        Cell capacityHeader = sheet.getRow(0).getCell(1,Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
         if(stopNameHeader != null && capacityHeader != null){
-            if(stopNameHeader.getCellType() == CellType.STRING 
+            if(stopNameHeader.getCellType() == CellType.STRING
                     && capacityHeader.getCellType() == CellType.STRING
-                    && stopNameHeader.getStringCellValue().equals("Megálló neve") 
+                    && stopNameHeader.getStringCellValue().equals("Megálló neve")
                     && capacityHeader.getStringCellValue().equals("Férőhelyek száma")
                     )
             {
@@ -236,6 +212,28 @@ public class FileManager extends DataController{
             }
         }
         return false;
+    }
+
+    public void readTable(File table, String tableName) {
+        XSSFWorkbook workbook = createWorkbook(table);
+        if(workbook != null){
+            switch(tableName){
+                case "driver" :
+                    iterateDriverWorkbook(workbook);
+                    break;
+                case "stop" :
+                    iterateStopWorkbook(workbook);
+                    break;
+                case "vehicle" :
+                    iterateVehicleWorkbook(workbook);
+                    break;
+            } 
+            try {
+                workbook.close();
+            } catch (IOException ex) {
+                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
     
 }

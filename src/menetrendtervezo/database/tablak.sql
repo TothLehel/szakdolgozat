@@ -29,14 +29,14 @@ CREATE TABLE [stops] (
 GO
 
 CREATE TABLE [schedule] (
+  [schedule_id] int PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
   [schedule_name] varchar(50),
   [driver_id] int,
   [start_date] timestamp,
   [end_date] timestamp,
   [license_plate] varchar(7),
   [route_id] int,
-  [app_group] varchar(10),
-  PRIMARY KEY ([schedule_name], [start_date], [route_id])
+  [app_group] varchar(10)
 )
 GO
 

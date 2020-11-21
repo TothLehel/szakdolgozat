@@ -7,12 +7,18 @@ package menetrendtervezo.datacontroller;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import menetrendtervezo.database.DataBase;
+import menetrendtervezo.entity.Driver;
 import menetrendtervezo.entity.Schedule;
+import menetrendtervezo.entity.Vehicle;
 import menetrendtervezo.route.RoadType;
 import menetrendtervezo.route.Route;
 import menetrendtervezo.route.RouteDestinations;
@@ -41,13 +47,13 @@ public class DataController {
         }
         return stops;
     }
-    public void createDriver(Row row){
+    public void createDriver(Row row) throws SQLIntegrityConstraintViolationException{
         db.createDriver(row);
     }
     public void deleteSQLTable(String tableName){
         db.deleteSQLTable(tableName);
     }
-    public void createVehicle(Row row){
+    public void createVehicle(Row row) throws SQLIntegrityConstraintViolationException{
         db.createVehicle(row);
     }
     public void createStop(Row row){
@@ -127,5 +133,66 @@ public class DataController {
         db.addScheduleAsList(scheduleList);
     }
 
+    public ArrayList<Schedule> listSchedules(){
+        return db.listSchedules();
+    }
 
+    public void deleteScheduleByName(String scheduleName) {
+        db.deleteScheduleByName(scheduleName);
+    }
+
+    public ArrayList<Schedule> changeScheduleByName(String scheduleName) {
+        return db.changeScheduleByName(scheduleName);
+    }
+    public Set<Schedule> listSchedulesOnlyOnce(){
+        return db.listSchedulesOnlyOnce();
+    }
+
+    public void updateScheduleAsList(ArrayList<Schedule> schedules) {
+        db.updateScheduleAsList(schedules);
+    }
+    public ArrayList<Driver> getDriversBetweenDates(LocalDateTime from, LocalDateTime to, int scheduleId){
+        return db.getDriversBetweenDates(from, to, scheduleId);
+    }
+    public ArrayList<Vehicle> getVehcilesBetweenDates(LocalDateTime from, LocalDateTime to, int scheduleId){
+        return db.getVehcilesBetweenDates(from, to, scheduleId);
+    }
+
+    public void updateScheduleWithDriverAndVechicle(int selectedSchedule, Driver selectedDriver, Vehicle selectedVehicle) {
+        db.updateScheduleWithDriverAndVechicle(selectedSchedule, selectedDriver, selectedVehicle);
+    }
+
+    public Driver getDriverById(int driverId) {
+        return db.getDriverById(driverId);
+    }
+
+    public Vehicle getVehicleByLicencePlate(String licensePlate) {
+        return db.getVehicleByLicencePlate(licensePlate);
+    }
+
+    public void deleteScheduleDriverAndVehcile(int scheduleId) {
+        db.deleteScheduleDriverAndVehcile(scheduleId);
+    }
+    public void listDrivers(){
+        db.listDrivers();
+    }
+    public void updateOrInsertStopDistances(int routeId, ArrayList<StopDistance> stopDistances){
+        db.updateOrInsertStopDistances(routeId, stopDistances);
+    }
+
+    public void updateOrInsertRouteDest(int routeId, ArrayList<RouteDestinations> routeArrayList) {
+        db.updateOrInsertRouteDest(routeId, routeArrayList);
+    }
+
+    public void updateOrInsertRouteTableView(RouteTableView routeTableView, int routeId) {
+        db.updateOrInsertRouteTableView(routeTableView, routeId);
+    }
+    public void updateOrInsertRoute(int routeId, Route route){
+        db.updateOrInsertRoute(routeId, route);
+    }
+
+    public void updateOrInsertScheduleAsList(String changeScheduleName, ArrayList<Schedule> schedules) {
+        db.updateOrInsertScheduleAsList(changeScheduleName,  schedules);
+    }
+            
 }
