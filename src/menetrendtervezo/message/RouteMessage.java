@@ -71,7 +71,7 @@ public class RouteMessage {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Nem összefüggő útvonal!");
         alert.setHeaderText(null);
-        alert.setContentText("Az újonnan beilleszteni kívánt útszakasz a kezdő megállójának egyenlőnek kell lennie az előző útszakasz végső megállójával, "
+        alert.setContentText("Az újonnan beilleszteni kívánt útszakasz kezdő megállójának egyenlőnek kell lennie az előző útszakasz végső megállójával, "
                 + "vagy az új szakasznak a kezdő és végpontjainak kell egyeznie az előző útszakasz kezdő és végpontjával!  ");
         alert.show();
     }

@@ -51,7 +51,7 @@
                         <Label layoutX="280.0" layoutY="69.0" text=":" />
                         <Label layoutX="280.0" layoutY="141.0" text=":" />
                         <Agenda id="scheduleAgenda" fx:id="scheduleAgenda" layoutX="573.0" layoutY="67.0" prefHeight="529.0" prefWidth="669.0" />
-                        <Spinner id="dateSpinner" fx:id="dateSpinner" layoutX="565.0" layoutY="23.0" prefWidth="350.0" />
+                        <DatePicker id="agendaDate" fx:id="agendaDate" layoutX="565.0" layoutY="23.0" prefWidth="350.0" />
                         <Spinner id="cycleSpinner" fx:id="cycleSpinner" layoutX="402.0" layoutY="170.0" prefHeight="31.0" prefWidth="113.0" />
                         <TextField id="scheduleNameTextField" fx:id="scheduleNameTextField" layoutX="1013.0" layoutY="23.0" />
                         <Label layoutX="1050.0" layoutY="4.0" text="Menetrend neve:" />
@@ -85,7 +85,6 @@
                         <TableView id="routeTable" fx:id="routeTable" layoutX="544.0" layoutY="148.0" prefHeight="353.0" prefWidth="592.0" />
                         <Button id="finishAddingRoutesButton" fx:id="finishAddingRoutesButton" layoutX="1023.0" layoutY="543.0" mnemonicParsing="false" onAction="#finishAddingRoutes" prefHeight="45.0" prefWidth="98.0" text="Kész" />
                         <Button id="deleteRoadButton" fx:id="deleteRoadButton" layoutX="586.0" layoutY="517.0" mnemonicParsing="false" onAction="#deleteRoad" prefHeight="22.0" prefWidth="78.0" text="Törlés" />
-                        <Button id="editRoadButton" fx:id="editRoadButton" layoutX="587.0" layoutY="566.0" mnemonicParsing="false" onAction="#changeRoad" text="Változtatás" />
                         <Button id="moveRoadUp" fx:id="moveRoadUp" layoutX="691.0" layoutY="517.0" mnemonicParsing="false" onAction="#moveUp" text="Feljebb" />
                         <Button id="moveRoadDown" fx:id="moveRoadDown" layoutX="691.0" layoutY="566.0" mnemonicParsing="false" onAction="#moveDown" text="Lejjebb" />
                         <TextField id="routeNameTextField" fx:id="routeNameTextField" layoutX="1004.0" layoutY="91.0" promptText="Útvonal név" />

@@ -29,8 +29,7 @@ public class YearAndMonthSpinner {
     LocalDateTime lastDayOfWeek = LocalDateTime.now().with(DayOfWeek.of(((WeekFields.of(Locale.getDefault()).getFirstDayOfWeek().getValue() + 5) % DayOfWeek.values().length) + 1));
     DateTimeFormatter hourFormatter = DateTimeFormatter.ofPattern("yyyy MMMM dd");
     SpinnerValueFactory yearAndMonthSpinner = new SpinnerValueFactory<String>() {
-        {
-            
+        {  
             dateString = "";
             dateString += hourFormatter.format(firstDayOfWeek) + " - ";
             dateString += hourFormatter.format(lastDayOfWeek);

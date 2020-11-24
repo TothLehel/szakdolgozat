@@ -6,11 +6,15 @@
 package menetrendtervezo.controller;
 
 import java.net.URL;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.ResourceBundle;
+import java.util.Set;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -20,12 +24,14 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Skin;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
+import jdk.nashorn.internal.parser.DateParser;
 import jfxtras.internal.scene.control.skin.agenda.AgendaDaySkin;
 import jfxtras.internal.scene.control.skin.agenda.AgendaWeekSkin;
 import jfxtras.scene.control.agenda.Agenda;
@@ -36,8 +42,6 @@ import menetrendtervezo.entity.Driver;
 import menetrendtervezo.entity.Schedule;
 import menetrendtervezo.entity.Vehicle;
 import menetrendtervezo.route.RouteTableView;
-import menetrendtervezo.spinnerfactory.DaySpinner;
-import menetrendtervezo.spinnerfactory.YearAndMonthSpinner;
 
 /**
  * FXML Controller class
@@ -50,9 +54,6 @@ public class BeosztasTabController implements Initializable {
     ChoiceBox scheduleSelector;
     
     @FXML
-    Spinner dateSpinner;
-    
-    @FXML
     Agenda scheduleAgenda;
     
     @FXML
@@ -61,8 +62,9 @@ public class BeosztasTabController implements Initializable {
     @FXML
     AnchorPane assignmentPage;
     
-    private Collection<Schedule> schedList;
-    
+    @FXML
+    DatePicker datePicker;
+     
     private HashMap<Appointment,Schedule> scheduleMap;
     
     private HashMap<Integer, RouteTableView> routeTableMap; 
@@ -76,7 +78,7 @@ public class BeosztasTabController implements Initializable {
         scheduleMap = new HashMap<>();
         routeTableMap = new HashMap<>();
         refreshScheduleList(obs);
-        initDateSpinner();
+        initDatePicker();
         loadRouteTableView();
         initDriverTableView();
         initAppointments();
@@ -94,42 +96,7 @@ public class BeosztasTabController implements Initializable {
         scheduleSelector.getSelectionModel().selectFirst();
         
     }
-    public void initDateSpinner(){
-        dateSpinner.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
-        YearAndMonthSpinner yms = new YearAndMonthSpinner();
-        DaySpinner ds = new DaySpinner();
-        dateSpinner.setValueFactory(yms.getYearAndMonthSpinner());
-        AgendaSkinSwitcher sk = new AgendaSkinSwitcher(scheduleAgenda);
-        scheduleAgenda.setAllowDragging(false);
-        scheduleAgenda.setAllowResize(false);
-        scheduleAgenda.setDisplayedLocalDateTime(LocalDateTime.now());
-        scheduleAgenda.getSkin().getSkinnable().skinProperty().addListener(new ChangeListener<Skin<?>>(){
-            @Override
-            public void changed(ObservableValue<? extends Skin<?>> observable, Skin<?> oldValue, Skin<?> newValue) {
-                if(newValue.getClass().equals(AgendaDaySkin.class)){                 
-                    dateSpinner.setValueFactory(ds.getDaySpinner());                                 
-                }else{ 
-                    dateSpinner.setValueFactory(yms.getYearAndMonthSpinner());                   
-                }
-            }
-            
-        });
-        
-        sk.setLayoutX(420);
-        sk.setLayoutY(115);
-        assignmentPage.getChildren().add(sk);
-        dateSpinner.valueProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if(scheduleAgenda.getSkin().getClass().equals(AgendaWeekSkin.class)){
-                    scheduleAgenda.setDisplayedLocalDateTime(yms.getFirstDayOfWeek());
-                }else{
-                    scheduleAgenda.setDisplayedLocalDateTime(ds.getChangedDay());
-                }
-                
-            }
-        });
-    }
+
     public void initAppointments(){
        
         scheduleSelector.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
@@ -186,16 +153,17 @@ public class BeosztasTabController implements Initializable {
         scheduleAgenda.selectedAppointments().addListener(new ListChangeListener< Appointment >() {
             @Override
             public void onChanged(ListChangeListener.Change<? extends Appointment> c) {
-                if(!scheduleAgenda.selectedAppointments().isEmpty()){
-                    for(Appointment a : scheduleAgenda.selectedAppointments()){
-                        LocalDateTime from = a.getStartLocalDateTime();
-                        LocalDateTime to = a.getEndLocalDateTime();
-                        Schedule s = scheduleMap.get(a);
-                        ArrayList<Driver> dList = DATA_CONTROLLER.getDriversBetweenDates(from, to,s.getScheduleId());
-                        ArrayList<Vehicle> vList = DATA_CONTROLLER.getVehcilesBetweenDates(from, to, s.getScheduleId());
-                        driverList.setItems(FXCollections.observableArrayList(dList));
-                        busList.setItems(FXCollections.observableArrayList(vList));
-                    }
+                if(scheduleAgenda.selectedAppointments().size() == 1){
+                    ArrayList<Driver> dList;
+                    ArrayList<Vehicle> vList;
+                    Appointment a = scheduleAgenda.selectedAppointments().get(0);
+                    LocalDateTime from = a.getStartLocalDateTime();
+                    LocalDateTime to = a.getEndLocalDateTime();
+                    Schedule s = scheduleMap.get(a);
+                    dList=DATA_CONTROLLER.getDriversBetweenDates(from, to);
+                    vList=DATA_CONTROLLER.getVehcilesBetweenDates(from, to, s.getScheduleId());
+                    driverList.setItems(FXCollections.observableArrayList(dList));
+                    busList.setItems(FXCollections.observableArrayList(vList));
                 }
             }
 
@@ -285,5 +253,21 @@ public class BeosztasTabController implements Initializable {
             scheduleAgenda.appointments().removeAll(appList);
             scheduleAgenda.appointments().addAll(temporaryAppList);
         }
+    }
+    public void initDatePicker(){
+        datePicker.setValue(LocalDate.now());
+        AgendaSkinSwitcher sk = new AgendaSkinSwitcher(scheduleAgenda);
+        scheduleAgenda.setAllowDragging(false);
+        scheduleAgenda.setAllowResize(false);
+        scheduleAgenda.setDisplayedLocalDateTime(LocalDateTime.now());
+        sk.setLayoutX(200);
+        sk.setLayoutY(115);
+        assignmentPage.getChildren().add(sk);
+        datePicker.valueProperty().addListener(new ChangeListener<LocalDate>() {
+            @Override
+            public void changed(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
+                scheduleAgenda.setDisplayedLocalDateTime(LocalDateTime.of(datePicker.getValue(), LocalTime.of(12, 0))); 
+            }   
+        });
     }
 }

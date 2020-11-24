@@ -12,7 +12,7 @@
     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" fx:id="assignmentPage">
         <children>
             <ChoiceBox id="scheduleSelector" fx:id="scheduleSelector" layoutX="46.0" layoutY="33.0"  />
-            <Spinner id="dateSpinner" fx:id="dateSpinner" layoutX="50.0" layoutY="105.0" prefHeight="31.0" prefWidth="351.0" />
+            <DatePicker id="datePicker" fx:id="datePicker" layoutX="50.0" layoutY="105.0" prefHeight="38.0" prefWidth="146.0" />           
             <Agenda id="scheduleAgenda" fx:id="scheduleAgenda" layoutX="24.0" layoutY="157.0" prefHeight="473.0" prefWidth="725.0" />
             <TableView id="driverList" fx:id="driverList" layoutX="778.0" layoutY="33.0" prefHeight="522.0" prefWidth="200.0" />
             <TableView id="busList" fx:id="busList" layoutX="1004.0" layoutY="33.0" prefHeight="522.0" prefWidth="235.0" />

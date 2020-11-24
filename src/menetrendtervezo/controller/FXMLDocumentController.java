@@ -118,11 +118,11 @@ public class FXMLDocumentController implements Initializable {
     Slider cyclicSlider; 
     
     @FXML
-    DatePicker datePicker;
+    DatePicker datePicker, agendaDate;
     
     @FXML 
     Spinner startHourSpinner, endHourSpinner, startMinSpinner, 
-            endMinSpinner, dateSpinner, cycleSpinner;
+            endMinSpinner, cycleSpinner;
     
     @FXML
     Agenda scheduleAgenda;
@@ -248,38 +248,19 @@ public class FXMLDocumentController implements Initializable {
         endHourSpinner.setValueFactory(new HourSpinner().getHourSpinner());
         startMinSpinner.setValueFactory(new MinuteSpinner().getMinSpinner());
         endMinSpinner.setValueFactory(new MinuteSpinner().getMinSpinner());
-        dateSpinner.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
-        YearAndMonthSpinner yms = new YearAndMonthSpinner();
-        DaySpinner ds = new DaySpinner();
-        dateSpinner.setValueFactory(yms.getYearAndMonthSpinner());
+        agendaDate.setValue(LocalDate.now());
         AgendaSkinSwitcher sk = new AgendaSkinSwitcher(scheduleAgenda);
         scheduleAgenda.setAllowDragging(false);
         scheduleAgenda.setAllowResize(false);
         scheduleAgenda.setDisplayedLocalDateTime(LocalDateTime.now());
-        scheduleAgenda.getSkin().getSkinnable().skinProperty().addListener(new ChangeListener<Skin<?>>(){
-            @Override
-            public void changed(ObservableValue<? extends Skin<?>> observable, Skin<?> oldValue, Skin<?> newValue) {
-                if(newValue.getClass().equals(AgendaDaySkin.class)){                 
-                    dateSpinner.setValueFactory(ds.getDaySpinner());                                 
-                }else{ 
-                    dateSpinner.setValueFactory(yms.getYearAndMonthSpinner());                   
-                }
-            }
-            
-        });
-        
+      
         sk.setLayoutX(925);
         sk.setLayoutY(25);
         schedulePlanningPage.getChildren().add(sk);
-        dateSpinner.valueProperty().addListener(new ChangeListener<String>() {
+        agendaDate.valueProperty().addListener(new ChangeListener<LocalDate>() {
             @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if(scheduleAgenda.getSkin().getClass().equals(AgendaWeekSkin.class)){
-                    scheduleAgenda.setDisplayedLocalDateTime(yms.getFirstDayOfWeek());
-                }else{
-                    scheduleAgenda.setDisplayedLocalDateTime(ds.getChangedDay());
-                }
-                
+            public void changed(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
+                scheduleAgenda.setDisplayedLocalDateTime(LocalDateTime.of(agendaDate.getValue(), LocalTime.of(12, 00)));
             }
         });
         
@@ -596,18 +577,6 @@ public class FXMLDocumentController implements Initializable {
         }    
     }
     @FXML
-    public void changeRoad(ActionEvent event){
-        try{
-            StopDistance stop = (StopDistance)routeTable.getSelectionModel().getSelectedItem();
-            selectedStartLabel.setText(stop.getSelectedStartName());
-            selectedStopLabel.setText(stop.getSelectedStopName());
-            roadChoiceBox.getSelectionModel().select(stop.getRoadName());
-            distanceTextField.setText(Double.toString(stop.getDistance()));
-        }catch(NullPointerException e){
-            System.out.println("none selected");
-        }
-    }
-    @FXML
     public void deleteRoute(ActionEvent event){
         try{
             RouteTableView rtv = (RouteTableView)allRouteTable.getSelectionModel().getSelectedItem();
@@ -675,15 +644,22 @@ public class FXMLDocumentController implements Initializable {
                                     .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass(groupString))
                     );
                 }
-
+            }else if(routeTableForSchedule.getSelectionModel().getSelectedItem() == null){
+                SCHEDULE_MESSAGE.noRouteSelected();
+            }else{
+                SCHEDULE_MESSAGE.startEqualsToEndError();
             }
+        } else if(datePicker.getEditor().getText().trim().equals("")){
+                SCHEDULE_MESSAGE.noDateGiven();
         }
     }
     @FXML
     public void finishSchedule(ActionEvent event){
         if(!scheduleNameTextField.getText().trim().equals("")){
             Schedule sched = DATA_CONTROLLER.getScheduleByName(scheduleNameTextField.getText().trim());
-            if(sched == null ||  changeScheduleName.equals(sched.getScheduleName())){
+            if((sched == null 
+                ||  (changeScheduleName != null && changeScheduleName.equals(sched.getScheduleName())))
+                && scheduleAgenda.appointments().size() >= 1){
                 ObservableList<Appointment> obs = scheduleAgenda.appointments();
                 ObservableList<RouteTableView> rtw = routeTableForSchedule.getItems();
                 ArrayList<Schedule> schedules = new ArrayList<>();
@@ -711,9 +687,13 @@ public class FXMLDocumentController implements Initializable {
                 scheduleAgenda.setSkin(new AgendaWeekSkin(scheduleAgenda));
                 scheduleAgenda.setDisplayedLocalDateTime(LocalDateTime.now());
                 scheduleNameTextField.setText("");
-            }else{
+            }else if(sched != null &&  changeScheduleName == null){
                 SCHEDULE_MESSAGE.scheduleAlreadyExists();
+            }else{
+                SCHEDULE_MESSAGE.noAppointmentInserted();
             }
+        }else{
+            SCHEDULE_MESSAGE.emptyScheduleName();
         }
         
     }

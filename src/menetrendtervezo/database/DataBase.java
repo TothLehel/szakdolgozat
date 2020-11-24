@@ -5,8 +5,11 @@
  */
 package menetrendtervezo.database;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -70,7 +73,7 @@ public class DataBase {
             if(conn != null){
                 createStatement = conn.createStatement();
                 dbmd = conn.getMetaData();
-                String[] sqlOrders = readSQLFile("src\\menetrendtervezo\\database\\tablak.sql");
+                String[] sqlOrders = readSQLFile("tablak.sql");
                 createTables(sqlOrders);
             }
         } catch (SQLException ex) {
@@ -85,21 +88,17 @@ public class DataBase {
     }
     
     private String[] readSQLFile(String src){
-        File sqlFile = new File(src);
+        InputStream sqlFile = DataBase.class.getResourceAsStream(src);
         Scanner scanner;
         String fileString;
         String[] sqlOrd = null;
-        try {
-            scanner = new Scanner(sqlFile);
-            scanner.useDelimiter("\\Z");
-            fileString = scanner.next();
-            scanner.close();
-            fileString = fileString.replace("[", "");
-            fileString = fileString.replace("]", "");
-            sqlOrd = fileString.split("GO");
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, "a(z)"+src +" sql file nem található!", ex);
-        }
+        scanner = new Scanner(sqlFile);
+        scanner.useDelimiter("\\Z");
+        fileString = scanner.next();
+        scanner.close();
+        fileString = fileString.replace("[", "");
+        fileString = fileString.replace("]", "");
+        sqlOrd = fileString.split("GO");
         return sqlOrd;
     }
     private void createTables(String[] sqlOrders){
@@ -115,12 +114,12 @@ public class DataBase {
         }
         if(!created.contains(-1)){
             if(created.contains(1)){
-                created.add(executeSQL("src\\menetrendtervezo\\database\\kapcsolatok.sql"));
+                created.add(executeSQL("/kapcsolatok.sql"));
             }else{
                 Logger.getLogger(DataBase.class.getName()).log(Level.INFO, 
                         "minden tábla létezett az adatbázisban, így nem szükséges lefuttatni a kapcsolatokat");
             }if(!created.contains(-1) && created.contains(1)){
-                created.add(executeSQL("src\\menetrendtervezo\\database\\alap_adatok.sql"));
+                created.add(executeSQL("/alap_adatok.sql"));
                 
             }else{
                 Logger.getLogger(DataBase.class.getName()).
@@ -753,47 +752,38 @@ public class DataBase {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    public ArrayList<Driver> getDriversBetweenDates(LocalDateTime from, LocalDateTime to, int scheduleId){
-        try {        
-            //az a probléma hogy régi dátumok vannak az excel táblában 
-            /*PreparedStatement ps = conn.prepareStatement("SELECT driver_id FROM schedule WHERE (((start_date BETWEEN ? AND ?) "
-                    + "OR (end_date BETWEEN ? AND ?) OR (? BETWEEN start_date AND end_date) "
-                    + "AND (? BETWEEN start_date AND end_date)) AND NOT schedule_id = ?) ");*/
-            PreparedStatement ps = conn.prepareStatement("SELECT driver_id FROM schedule WHERE ("
-                    + "(? NOT BETWEEN start_date AND end_date) OR (? NOT BETWEEN start_date AND end_date)) "
-                    + "OR ((start_date NOT BETWEEN ? AND ?) AND (end_date NOT BETWEEN ? AND ?))");
-                    
+    public ArrayList<Driver> getDriversBetweenDates(LocalDateTime from, LocalDateTime to){
+        try {
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT driver_id FROM schedule WHERE ("
+                            + "(? NOT BETWEEN start_date AND end_date) "
+                            + "OR (? NOT BETWEEN start_date AND end_date)) "
+                            + "OR ((start_date NOT BETWEEN ? AND ?) "
+                            + "AND (end_date NOT BETWEEN ? AND ?))");      
             ps.setTimestamp(1, Timestamp.valueOf(from));
             ps.setTimestamp(2, Timestamp.valueOf(to));
             ps.setTimestamp(3, Timestamp.valueOf(from));
             ps.setTimestamp(4, Timestamp.valueOf(to));
             ps.setTimestamp(5, Timestamp.valueOf(from));
             ps.setTimestamp(6, Timestamp.valueOf(to));
-            
             ResultSet rs = ps.executeQuery();
-            Set<Integer> idList = new HashSet<>() ;
-            
+            Set<Integer> idSet = new HashSet<>() ;
             while(rs.next()){
                 int id = rs.getInt("driver_id");
-                idList.add(id);
+                idSet.add(id);
             }
-            
             StringBuilder sql = new StringBuilder();
             PreparedStatement driverStatement;
-            for(int s : idList){
+            for(int s : idSet){
                 sql.append(s).append(",");
             }
-            System.out.println(sql.toString());
-            if(sql.length() > 1){
+            if(sql.length() >= 1){
                 sql.deleteCharAt(sql.length()-1);
-                driverStatement = conn.prepareCall("SELECT * FROM drivers WHERE id not IN ("+sql.toString()+") "
-                        + "AND id in (SELECT driver_id FROM dates WHERE ((? BETWEEN start_time AND end_time) AND (? BETWEEN start_time AND end_time)))");
-                System.out.println("sql select");
-                driverStatement.setTimestamp(1, Timestamp.valueOf(from));
-                driverStatement.setTimestamp(2, Timestamp.valueOf(to));
-            }else{
-                return new ArrayList<>();
             }
+            driverStatement = conn.prepareStatement("SELECT * FROM drivers WHERE id not IN ("+sql.toString()+") "
+                    + "AND id in (SELECT driver_id FROM dates WHERE ((? BETWEEN start_time AND end_time) AND (? BETWEEN start_time AND end_time)))");
+            driverStatement.setTimestamp(1, Timestamp.valueOf(from));
+            driverStatement.setTimestamp(2, Timestamp.valueOf(to));
             ResultSet driverResultSet = driverStatement.executeQuery();
             ArrayList<Driver> driverList = new ArrayList<>();
             while(driverResultSet.next()){
@@ -811,8 +801,13 @@ public class DataBase {
     }
     public ArrayList<Vehicle> getVehcilesBetweenDates(LocalDateTime from, LocalDateTime to, int scheduleId){
         try {
-            PreparedStatement ps = conn.prepareStatement("SELECT license_plate FROM schedule WHERE ((start_date BETWEEN ? AND ?) OR (end_date BETWEEN ? AND ?) OR (? BETWEEN start_date AND end_date) AND (? BETWEEN start_date AND end_date)) AND NOT schedule_id = ? "); //talán menetrend nevet is nézni mert így másik menetrendeknél sem listázódik ki a folgalt jármű
-            ps.setTimestamp(1, Timestamp.valueOf(from));// ha null és egy elemű akkor minden busz jó alapesetben azok a buszok nem jók amiket kilistáz a lekérdezés a nullt kivéve, ki kell szedni ilyenkor a nullt 
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT license_plate FROM schedule WHERE "
+                            + "((start_date BETWEEN ? AND ?) OR (end_date BETWEEN ? AND ?) "
+                            + "OR (? BETWEEN start_date AND end_date) "
+                            + "AND (? BETWEEN start_date AND end_date)) "
+                            + "AND NOT schedule_id = ? "); 
+            ps.setTimestamp(1, Timestamp.valueOf(from));
             ps.setTimestamp(2, Timestamp.valueOf(to));
             ps.setTimestamp(3, Timestamp.valueOf(from));
             ps.setTimestamp(4, Timestamp.valueOf(to));
@@ -833,7 +828,6 @@ public class DataBase {
             }
             if(sql.length() > 1){
                 sql.deleteCharAt(sql.length()-1);
-                System.out.println(sql.toString());
                 vehicleStatement = conn.prepareCall("SELECT * FROM vehicles WHERE license_plate NOT IN ("+sql.toString()+")");
             }else{
                 vehicleStatement = conn.prepareCall("SELECT * FROM vehicles ");

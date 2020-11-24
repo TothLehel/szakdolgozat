@@ -151,8 +151,8 @@ public class DataController {
     public void updateScheduleAsList(ArrayList<Schedule> schedules) {
         db.updateScheduleAsList(schedules);
     }
-    public ArrayList<Driver> getDriversBetweenDates(LocalDateTime from, LocalDateTime to, int scheduleId){
-        return db.getDriversBetweenDates(from, to, scheduleId);
+    public ArrayList<Driver> getDriversBetweenDates(LocalDateTime from, LocalDateTime to){
+        return db.getDriversBetweenDates(from, to);
     }
     public ArrayList<Vehicle> getVehcilesBetweenDates(LocalDateTime from, LocalDateTime to, int scheduleId){
         return db.getVehcilesBetweenDates(from, to, scheduleId);

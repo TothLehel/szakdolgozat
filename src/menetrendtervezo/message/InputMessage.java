@@ -97,7 +97,7 @@ public class InputMessage {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Adatok felvitele sikertelen!");
         alert.setHeaderText(null);
-        alert.setContentText("A(z) " + row.getRowNum() + ". sorban található sofőr már létezik az adatbázisban!");
+        alert.setContentText("A(z) " + row.getRowNum() + ". sorban található sofőr kétszer található a táblázatban!");
         alert.show();
     }
 

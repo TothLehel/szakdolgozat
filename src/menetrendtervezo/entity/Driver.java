@@ -7,6 +7,7 @@ package menetrendtervezo.entity;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Objects;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.CellValue;
@@ -73,4 +74,30 @@ public class Driver {
         }
         return str;
    } 
+
+    @Override
+    public String toString() {
+        return "Driver{" + "name=" + name + ", id=" + id + ", workDays=" + workDays + '}';
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Driver other = (Driver) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        return true;
+    }
+
+    
 }
