@@ -5,7 +5,11 @@
  */
 package menetrendtervezo.message;
 
+import java.util.Optional;
+import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import org.apache.poi.ss.usermodel.Row;
 
 /**
@@ -107,5 +111,29 @@ public class InputMessage {
         alert.setHeaderText(null);
         alert.setContentText("A(z) " + row.getRowNum() + ". sorban található sofőrhöz már létezik a(z) "+row.getSheet().getActiveCell().toString() +" dátumhoz érték az adatbázisban!");
         alert.show();
+    }
+
+    public boolean databaseContainsDriverValues() {
+        //BooleanProperty confirm = BooleanProperty.booleanProperty(false);
+        String str = "Az adatbázis már tartalmaz sofőr adatokat amelyek új táblázat beillesztésével törlődnek! Ez a létrehozott beosztás adatainak törlésével járhat! Biztosan ezt akarja?";  
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,str,ButtonType.OK,ButtonType.CANCEL);
+        alert.setTitle("Adatbázis tartalmaz adatokat!");
+        alert.setHeaderText(null);
+        alert.showAndWait();
+        if(alert.getResult().equals(ButtonType.OK)){
+            return true;
+        }
+        return false;
+    }
+    public boolean databaseContainsVehiclesValues() {
+        String str = "Az adatbázis már tartalmaz jármű adatokat amelyek új táblázat beillesztésével törlődnek! Ez a létrehozott beosztás adatainak törlésével járhat! Biztosan ezt akarja?";  
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,str,ButtonType.OK,ButtonType.CANCEL);
+        alert.setTitle("Adatbázis tartalmaz adatokat!");
+        alert.setHeaderText(null);
+        alert.showAndWait();
+        if(alert.getResult().equals(ButtonType.OK)){
+            return true;
+        }
+        return false;
     }
 }

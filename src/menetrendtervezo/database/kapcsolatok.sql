@@ -1,7 +1,7 @@
-ALTER TABLE [dates] ADD FOREIGN KEY ([driver_id]) REFERENCES [drivers] ([id])
+ALTER TABLE [dates] ADD FOREIGN KEY ([driver_id]) REFERENCES [drivers] ([id]) ON DELETE CASCADE
 GO
 
-ALTER TABLE [schedule] ADD FOREIGN KEY ([driver_id]) REFERENCES [drivers] ([id])
+ALTER TABLE [schedule] ADD FOREIGN KEY ([driver_id]) REFERENCES [drivers] ([id]) ON DELETE CASCADE
 GO
 
 ALTER TABLE [vehicles] ADD FOREIGN KEY ([type]) REFERENCES [vehicle_type_limits] ([type])
@@ -16,7 +16,7 @@ GO
 ALTER TABLE [schedule] ADD FOREIGN KEY ([license_plate]) REFERENCES [vehicles] ([license_plate]) ON DELETE CASCADE
 GO
 
-ALTER TABLE [schedule] ADD FOREIGN KEY ([route_id]) REFERENCES [routes] ([route_id])
+ALTER TABLE [schedule] ADD FOREIGN KEY ([route_id]) REFERENCES [routes] ([route_id]) ON DELETE CASCADE
 GO
 
 ALTER TABLE [route_destinations] ADD FOREIGN KEY ([route_id]) REFERENCES [routes] ([route_id])

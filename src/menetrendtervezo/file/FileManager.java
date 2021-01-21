@@ -70,44 +70,55 @@ public class FileManager extends DataController{
     private static void iterateDriverWorkbook(XSSFWorkbook workbook){
         XSSFSheet sheet = workbook.getSheetAt(0);
         Iterator<Row> rowIt = sheet.iterator();
-        boolean succesfull = true;
-        DATA_CONTROLLER.deleteSQLTable("dates");
-        DATA_CONTROLLER.deleteSQLTable("drivers");
-        if(isDriverTableFormatCorrect(sheet)){
-            while(rowIt.hasNext()){
-                Row row = rowIt.next();
-                if(row.getRowNum() >= 2 ){ 
-                    try {
-                        DATA_CONTROLLER.createDriver(row);
-                    } catch (SQLIntegrityConstraintViolationException ex) {
-                        switch(ex.getMessage()){
-                            case "driver" :
-                                INPUT_MESSAGE.driverAlreadyExists(row);
-                                break;
-                            case "date" :
-                                INPUT_MESSAGE.dateAlreadyExists(row);
-                                break;
+        boolean empty = DATA_CONTROLLER.isDriverTableEmpty();
+        boolean confirm = true;
+        if(!empty){
+            confirm = INPUT_MESSAGE.databaseContainsDriverValues();
+        }
+        if(confirm){
+            boolean succesfull = true;
+            DATA_CONTROLLER.deleteSQLTable("dates");
+            DATA_CONTROLLER.deleteSQLTable("drivers");
+            if(isDriverTableFormatCorrect(sheet)){
+                while(rowIt.hasNext()){
+                    Row row = rowIt.next();
+                    if(row.getRowNum() >= 2 ){ 
+                        try {
+                            DATA_CONTROLLER.createDriver(row);
+                        } catch (SQLIntegrityConstraintViolationException ex) {
+                            switch(ex.getMessage()){
+                                case "driver" :
+                                    INPUT_MESSAGE.driverAlreadyExists(row);
+                                    break;
+                                case "date" :
+                                    INPUT_MESSAGE.dateAlreadyExists(row);
+                                    break;
+                            }
+                            succesfull = false;
+                            DATA_CONTROLLER.deleteSQLTable("dates");
+                            DATA_CONTROLLER.deleteSQLTable("drivers");
+                            break;
                         }
-                        succesfull = false;
-                        DATA_CONTROLLER.deleteSQLTable("dates");
-                        DATA_CONTROLLER.deleteSQLTable("drivers");
-                        break;
                     }
                 }
+                if(succesfull){
+                    INPUT_MESSAGE.succesfulDriverTableInput();
+                }
+            }else{
+                INPUT_MESSAGE.driverTableFormatError();
             }
-            if(succesfull){
-                DATA_CONTROLLER.listDrivers();
-                INPUT_MESSAGE.succesfulDriverTableInput();
-            }
-        }else{
-            INPUT_MESSAGE.driverTableFormatError();
         }
     }
     private static void iterateVehicleWorkbook(XSSFWorkbook workbook){
         XSSFSheet sheet = workbook.getSheetAt(0);
         Iterator<Row> rowIt = sheet.iterator();
         boolean succesful = true;
-        if(isVehicleTableFormatCorrect(sheet)){
+        boolean empty = DATA_CONTROLLER.isVehicleTableEmpty();
+        boolean confirm = true;
+        if(!empty){
+            confirm = INPUT_MESSAGE.databaseContainsVehiclesValues();
+        }
+        if( confirm &&isVehicleTableFormatCorrect(sheet)){
             DATA_CONTROLLER.deleteSQLTable("vehicles");
             while(rowIt.hasNext()){
                 Row row = rowIt.next();

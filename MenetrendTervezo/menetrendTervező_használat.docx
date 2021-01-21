@@ -1,0 +1,7 @@
+Menetrendtervezõ futtatása
+
+A program Java 8 alapon mûködik, így az indításához szükséges hogy a számítógépen telepítve legyen a Java Runtime Enviroment. Ezt ingyenesen letölthetjük a https://java.com/en/download/manual.jsp oldalról Windows, Mac, Linux és Solaris operációs rendszerekre. 
+A letöltést követõen kövessük a telepítõ utasításait. A telepítés végén a rendszer képes lesz futtatni a „jar” kiterjesztésû fájlokat. Ezután kicsomagolhatjuk a menetrendTervezo.zip tömörített fájlt. A kicsomagolt mappában található a MenetrendTervezo.jar, amelyre kattintva elindul a program. 
+Az elsõ indítás során legenerálódik az adatbázis, ami miatt lassabban indulhat el a program. Abban az esetben ha a jar fájlra kattintva nem jelenik meg a kezdõképernyõ akkor Windows operációs rendszeren a run.bat fájlt futtatva kiadhatjuk a rendszernek az indító parancsot. Más operációs rendszerek esetén a mappában megnyitott terminál vagy konzol ablakban kiadhatjuk a „java -jar MenetrendTervezo.jar” parancsot. 
+  
+

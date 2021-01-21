@@ -114,12 +114,12 @@ public class DataBase {
         }
         if(!created.contains(-1)){
             if(created.contains(1)){
-                created.add(executeSQL("/kapcsolatok.sql"));
+                created.add(executeSQL("kapcsolatok.sql"));
             }else{
                 Logger.getLogger(DataBase.class.getName()).log(Level.INFO, 
                         "minden tábla létezett az adatbázisban, így nem szükséges lefuttatni a kapcsolatokat");
             }if(!created.contains(-1) && created.contains(1)){
-                created.add(executeSQL("/alap_adatok.sql"));
+                created.add(executeSQL("alap_adatok.sql"));
                 
             }else{
                 Logger.getLogger(DataBase.class.getName()).
@@ -1138,5 +1138,75 @@ public class DataBase {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    public boolean isDriverTableEmpty() {
+       try{
+           PreparedStatement ps = conn.prepareStatement("SELECT count(*) FROM drivers");
+           ResultSet rs = ps.executeQuery();
+           int count = 0;
+           if(rs.next()){
+                count = rs.getInt(1);
+           }
+           if(count != 0){    
+               return false;
+           }
+       }catch(SQLException ex ){
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+       }
+       return true;
+    }
+
+    public boolean isVehicleTableEmpty() {
+        try{
+           PreparedStatement ps = conn.prepareStatement("SELECT count(*) FROM vehicles");
+           ResultSet rs = ps.executeQuery();
+           int count = 0;
+           if(rs.next()){
+                count = rs.getInt(1);
+           }
+           if(count != 0){    
+               return false;
+           }
+       }catch(SQLException ex ){
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+       }
+       return true;
+    }
+
+    public boolean isScheduleContainsRoad(int routeId) {
+        try{
+           PreparedStatement ps = conn.prepareStatement("SELECT count(*) FROM schedule where route_id=?");
+           ps.setInt(1, routeId);
+           ResultSet rs = ps.executeQuery();
+           int count = 0;
+           if(rs.next()){
+                count = rs.getInt(1);
+           }
+           if(count != 0){    
+               return true;
+           }
+       }catch(SQLException ex ){
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+       }
+       return false;
+    }
+
+    public boolean isScheduleBound(String scheduleName) {
+        try{
+           PreparedStatement ps = conn.prepareStatement("SELECT driver_id, license_plate FROM schedule where schedule_name = ?");
+           ps.setString(1, scheduleName);
+           ResultSet rs = ps.executeQuery();
+           if(rs.next()){
+               System.out.println(rs.getString("driver_id") + " " + rs.getString("license_plate"));
+               return true;
+           }
+           
+       }catch(SQLException ex ){
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+       }
+       return false;
+    }
+
+    
 }
 

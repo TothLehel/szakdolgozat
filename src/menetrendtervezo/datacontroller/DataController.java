@@ -194,5 +194,22 @@ public class DataController {
     public void updateOrInsertScheduleAsList(String changeScheduleName, ArrayList<Schedule> schedules) {
         db.updateOrInsertScheduleAsList(changeScheduleName,  schedules);
     }
+
+    public boolean isDriverTableEmpty() {
+        return db.isDriverTableEmpty();
+    }
+
+    public boolean isVehicleTableEmpty() {
+        return db.isVehicleTableEmpty();
+    }
+
+    public boolean isScheduleContainsRoad(int routeId) {
+        return db.isScheduleContainsRoad(routeId);
+    }
+
+    public boolean isScheduleBound(String scheduleName) {
+        return db.isScheduleBound(scheduleName);
+    }
+    
             
 }

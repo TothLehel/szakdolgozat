@@ -580,11 +580,16 @@ public class FXMLDocumentController implements Initializable {
     public void deleteRoute(ActionEvent event){
         try{
             RouteTableView rtv = (RouteTableView)allRouteTable.getSelectionModel().getSelectedItem();
-            allRouteTable.getItems().remove(rtv);
-            System.out.println("rtv route id: " + rtv.getRouteId());
-            DATA_CONTROLLER.removeRouteDestinationsByRouteId(rtv.getRouteId()); //route_destinations table
-            DATA_CONTROLLER.deleteRouteTableViewByRouteId(rtv.getRouteId());
-            DATA_CONTROLLER.removeRouteById(rtv.getRouteId()); //route table
+            boolean confirm = true;
+            if(DATA_CONTROLLER.isScheduleContainsRoad(rtv.getRouteId())){
+                confirm = ROUTE_MESSAGE.databaseContainsVehiclesValues();
+            }
+            if(confirm){
+                allRouteTable.getItems().remove(rtv);
+                DATA_CONTROLLER.removeRouteDestinationsByRouteId(rtv.getRouteId()); //route_destinations table
+                DATA_CONTROLLER.deleteRouteTableViewByRouteId(rtv.getRouteId());
+                DATA_CONTROLLER.removeRouteById(rtv.getRouteId()); //route table
+            }
         }catch(NullPointerException e){
             System.out.println("none selected");
         }
@@ -701,8 +706,14 @@ public class FXMLDocumentController implements Initializable {
     public void deleteSchedule(ActionEvent event){
         Schedule selected = (Schedule)(scheduleList.getSelectionModel().getSelectedItem());
         if(selected != null){
-            DATA_CONTROLLER.deleteScheduleByName(selected.getScheduleName());
-            scheduleList.setItems(FXCollections.observableList(new ArrayList<>(DATA_CONTROLLER.listSchedulesOnlyOnce())));
+            boolean confirm = true;
+            if(DATA_CONTROLLER.isScheduleBound(selected.getScheduleName())){
+                confirm = SCHEDULE_MESSAGE.scheduleIsBound();
+            }
+            if(confirm){
+                DATA_CONTROLLER.deleteScheduleByName(selected.getScheduleName());
+                scheduleList.setItems(FXCollections.observableList(new ArrayList<>(DATA_CONTROLLER.listSchedulesOnlyOnce())));
+            }
         }
     }
     @FXML

@@ -6,6 +6,7 @@
 package menetrendtervezo.message;
 
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 
 /**
  *
@@ -82,6 +83,17 @@ public class RouteMessage {
         alert.setHeaderText(null);
         alert.setContentText("A kezdő megálló ugyanaz mint a befejező megálló!");
         alert.show();
+    }
+    public boolean databaseContainsVehiclesValues() {
+        String str = "Létezik olyan menetrend ami tartalmazza az adott útvonalat! Biztosan törölni akarja?";  
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,str,ButtonType.OK,ButtonType.CANCEL);
+        alert.setTitle("Útvonal törlése!");
+        alert.setHeaderText(null);
+        alert.showAndWait();
+        if(alert.getResult().equals(ButtonType.OK)){
+            return true;
+        }
+        return false;
     }
     
 }

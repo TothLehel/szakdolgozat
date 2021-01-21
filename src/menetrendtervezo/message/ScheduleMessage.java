@@ -6,6 +6,7 @@
 package menetrendtervezo.message;
 
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 
 /**
  *
@@ -58,5 +59,16 @@ public class ScheduleMessage {
         alert.setHeaderText(null);
         alert.setContentText("A létrehozni kívánt menetrendhez nem tartonzak időpontok!");
         alert.show();
+    }
+    public boolean scheduleIsBound() {
+        String str = "Az Menetrendhez tartoznak beosztás adatok amik a menetrend törlésével eltűnnek! Biztosan ezt akarja?";  
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,str,ButtonType.OK,ButtonType.CANCEL);
+        alert.setTitle("Menetrendhez tartoznak adatok!");
+        alert.setHeaderText(null);
+        alert.showAndWait();
+        if(alert.getResult().equals(ButtonType.OK)){
+            return true;
+        }
+        return false;
     }
 }
